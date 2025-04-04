@@ -49,6 +49,12 @@ export default function Navbar() {
             <Link to="/nova-analise" className={`transition-colors ${isActive('/nova-analise')}`}>
               Nova Análise
             </Link>
+            <Link to="/como-funciona" className={`transition-colors ${isActive('/como-funciona')}`}>
+              Como Funciona
+            </Link>
+            <Link to="/precos" className={`transition-colors ${isActive('/precos')}`}>
+              Preços
+            </Link>
             <Link to="/sobre" className={`transition-colors ${isActive('/sobre')}`}>
               Sobre
             </Link>
@@ -83,6 +89,12 @@ export default function Navbar() {
               </Link>
               <Link to="/nova-analise" className={`py-2 ${isActive('/nova-analise')}`}>
                 Nova Análise
+              </Link>
+              <Link to="/como-funciona" className={`py-2 ${isActive('/como-funciona')}`}>
+                Como Funciona
+              </Link>
+              <Link to="/precos" className={`py-2 ${isActive('/precos')}`}>
+                Preços
               </Link>
               <Link to="/sobre" className={`py-2 ${isActive('/sobre')}`}>
                 Sobre

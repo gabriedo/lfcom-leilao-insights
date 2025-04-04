@@ -10,6 +10,8 @@ import NovaAnalise from "./pages/NovaAnalise";
 import PropertyReportPage from "./pages/PropertyReportPage";
 import Sobre from "./pages/Sobre";
 import NotFound from "./pages/NotFound";
+import ComoFunciona from "./pages/ComoFunciona";
+import Precos from "./pages/Precos";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,8 @@ const App = () => (
           <Route path="/nova-analise" element={<NovaAnalise />} />
           <Route path="/relatorio/:id" element={<PropertyReportPage />} />
           <Route path="/sobre" element={<Sobre />} />
+          <Route path="/como-funciona" element={<ComoFunciona />} />
+          <Route path="/precos" element={<Precos />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
