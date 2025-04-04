@@ -1,13 +1,24 @@
 
-import { Menu } from "lucide-react";
+import { Menu, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +40,17 @@ export default function Navbar() {
 
   const isActive = (path: string) => {
     return location.pathname === path ? "text-lfcom-black font-semibold" : "text-lfcom-gray-600 hover:text-lfcom-black";
+  };
+
+  // Get initials from user name
+  const getUserInitials = () => {
+    if (!user?.name) return "U";
+    return user.name
+      .split(' ')
+      .map(part => part[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2);
   };
 
   return (
@@ -61,12 +83,50 @@ export default function Navbar() {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" className="border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100">
-              Entrar
-            </Button>
-            <Button className="bg-lfcom-black text-white hover:bg-lfcom-gray-800">
-              Começar
-            </Button>
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                    <Avatar>
+                      <AvatarFallback className="bg-lfcom-black text-white">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/dashboard" className="cursor-pointer">Dashboard</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/perfil" className="cursor-pointer">Perfil</Link>
+                  </DropdownMenuItem>
+                  {user?.plan && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/meu-plano" className="cursor-pointer">
+                        Meu Plano ({user.plan.charAt(0).toUpperCase() + user.plan.slice(1)})
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-600 cursor-pointer">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sair
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="outline" className="border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100">
+                  <Link to="/login">Entrar</Link>
+                </Button>
+                <Button className="bg-lfcom-black text-white hover:bg-lfcom-gray-800">
+                  <Link to="/register">Começar</Link>
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -100,12 +160,39 @@ export default function Navbar() {
                 Sobre
               </Link>
               <div className="pt-4 flex flex-col space-y-2">
-                <Button variant="outline" className="w-full border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100">
-                  Entrar
-                </Button>
-                <Button className="w-full bg-lfcom-black text-white hover:bg-lfcom-gray-800">
-                  Começar
-                </Button>
+                {isAuthenticated ? (
+                  <>
+                    <div className="flex items-center space-x-2 py-2">
+                      <Avatar>
+                        <AvatarFallback className="bg-lfcom-black text-white">
+                          {getUserInitials()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-medium">{user?.name}</span>
+                    </div>
+                    <Link to="/perfil" className="py-2 flex items-center">
+                      <User className="h-4 w-4 mr-2" />
+                      Perfil
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-red-600 text-red-600 hover:bg-red-50"
+                      onClick={logout}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sair
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="outline" className="w-full border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100">
+                      <Link to="/login">Entrar</Link>
+                    </Button>
+                    <Button className="w-full bg-lfcom-black text-white hover:bg-lfcom-gray-800">
+                      <Link to="/register">Começar</Link>
+                    </Button>
+                  </>
+                )}
               </div>
             </nav>
           </div>
