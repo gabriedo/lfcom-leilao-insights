@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Link as LinkIcon, Loader2 } from "lucide-react";
 
 import {
   Card,
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface FileWithPreview extends File {
   preview?: string;
@@ -30,6 +31,19 @@ export default function AnalysisForm() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [files, setFiles] = useState<FileWithPreview[]>([]);
+  const [propertyUrl, setPropertyUrl] = useState("");
+  const [extracting, setExtracting] = useState(false);
+  const [extractionResult, setExtractionResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+  
+  // Form fields
+  const [propertyType, setPropertyType] = useState("");
+  const [auctionType, setAuctionType] = useState("");
+  const [minBid, setMinBid] = useState("");
+  const [evaluatedValue, setEvaluatedValue] = useState("");
+  const [address, setAddress] = useState("");
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -61,6 +75,67 @@ export default function AnalysisForm() {
     });
   };
 
+  const handleExtractData = async () => {
+    if (!propertyUrl || !propertyUrl.trim()) {
+      toast({
+        title: "URL inválida",
+        description: "Por favor, informe uma URL válida para o imóvel.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setExtracting(true);
+    setExtractionResult(null);
+    
+    // Simulando a extração de dados (em produção, aqui seria uma chamada à API)
+    try {
+      // Simulação de tempo para extração
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      
+      // Simulação de dados extraídos
+      const mockExtractedData = {
+        propertyType: "apartment",
+        auctionType: "judicial",
+        minBid: "150000",
+        evaluatedValue: "280000",
+        address: "Av. Paulista, 1000, Apto 123, São Paulo - SP",
+        // Aqui simularíamos arquivos extraídos também
+      };
+      
+      // Atualiza o formulário com os dados extraídos
+      setPropertyType(mockExtractedData.propertyType);
+      setAuctionType(mockExtractedData.auctionType);
+      setMinBid(mockExtractedData.minBid);
+      setEvaluatedValue(mockExtractedData.evaluatedValue);
+      setAddress(mockExtractedData.address);
+      
+      setExtractionResult({
+        success: true,
+        message: "Dados extraídos com sucesso! Os campos foram preenchidos automaticamente.",
+      });
+      
+      toast({
+        title: "Extração concluída",
+        description: "Os dados do imóvel foram extraídos com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro na extração:", error);
+      setExtractionResult({
+        success: false,
+        message: "Não foi possível extrair os dados do imóvel. Verifique a URL ou preencha os dados manualmente.",
+      });
+      
+      toast({
+        title: "Erro na extração",
+        description: "Não foi possível extrair os dados do imóvel.",
+        variant: "destructive",
+      });
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -78,9 +153,55 @@ export default function AnalysisForm() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
+      <Card className="lfcom-card mb-6">
+        <CardHeader>
+          <CardTitle>Link do imóvel</CardTitle>
+          <CardDescription>
+            Cole o link do imóvel para extração automática dos dados
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-3">
+              <Input 
+                type="url" 
+                placeholder="https://www.sitedeleilao.com.br/imovel/123"
+                value={propertyUrl}
+                onChange={(e) => setPropertyUrl(e.target.value)}
+              />
+            </div>
+            <Button 
+              type="button" 
+              onClick={handleExtractData} 
+              disabled={extracting || !propertyUrl} 
+              className="whitespace-nowrap"
+            >
+              {extracting ? 
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Extraindo...
+                </> : 
+                <>
+                  <LinkIcon className="h-4 w-4 mr-2" />
+                  Extrair dados
+                </>
+              }
+            </Button>
+          </div>
+          
+          {extractionResult && (
+            <Alert variant={extractionResult.success ? "default" : "destructive"}>
+              <AlertDescription>
+                {extractionResult.message}
+              </AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
+      
       <Card className="lfcom-card">
         <CardHeader>
-          <CardTitle>Nova Análise de Imóvel</CardTitle>
+          <CardTitle>Dados do imóvel</CardTitle>
           <CardDescription>
             Preencha as informações e faça upload dos documentos para análise
           </CardDescription>
@@ -88,7 +209,7 @@ export default function AnalysisForm() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="propertyType">Tipo de Imóvel</Label>
-            <Select>
+            <Select value={propertyType} onValueChange={setPropertyType}>
               <SelectTrigger id="propertyType">
                 <SelectValue placeholder="Selecione o tipo de imóvel" />
               </SelectTrigger>
@@ -104,7 +225,7 @@ export default function AnalysisForm() {
           
           <div className="space-y-2">
             <Label htmlFor="auctionType">Tipo de Leilão/Venda</Label>
-            <Select>
+            <Select value={auctionType} onValueChange={setAuctionType}>
               <SelectTrigger id="auctionType">
                 <SelectValue placeholder="Selecione o tipo de leilão" />
               </SelectTrigger>
@@ -120,17 +241,34 @@ export default function AnalysisForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="minBid">Lance Mínimo (R$)</Label>
-              <Input id="minBid" type="text" placeholder="0,00" />
+              <Input 
+                id="minBid" 
+                type="text" 
+                placeholder="0,00"
+                value={minBid}
+                onChange={(e) => setMinBid(e.target.value)}
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="evaluatedValue">Valor de Avaliação (R$)</Label>
-              <Input id="evaluatedValue" type="text" placeholder="0,00" />
+              <Input 
+                id="evaluatedValue" 
+                type="text" 
+                placeholder="0,00"
+                value={evaluatedValue}
+                onChange={(e) => setEvaluatedValue(e.target.value)}
+              />
             </div>
           </div>
           
           <div className="space-y-2">
             <Label htmlFor="address">Endereço Completo</Label>
-            <Textarea id="address" placeholder="Digite o endereço completo do imóvel" />
+            <Textarea 
+              id="address" 
+              placeholder="Digite o endereço completo do imóvel"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+            />
           </div>
           
           <div className="space-y-2">
