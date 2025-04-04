@@ -2,11 +2,12 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -20,6 +21,15 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+  
+  // Close mobile menu when changing routes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location]);
+
+  const isActive = (path: string) => {
+    return location.pathname === path ? "text-lfcom-black font-semibold" : "text-lfcom-gray-600 hover:text-lfcom-black";
+  };
 
   return (
     <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
@@ -33,13 +43,13 @@ export default function Navbar() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
-            <Link to="/dashboard" className="text-lfcom-black hover:text-lfcom-gray-500 font-medium">
+            <Link to="/dashboard" className={`transition-colors ${isActive('/dashboard')}`}>
               Dashboard
             </Link>
-            <Link to="/analises" className="text-lfcom-black hover:text-lfcom-gray-500 font-medium">
-              Análises
+            <Link to="/nova-analise" className={`transition-colors ${isActive('/nova-analise')}`}>
+              Nova Análise
             </Link>
-            <Link to="/sobre" className="text-lfcom-black hover:text-lfcom-gray-500 font-medium">
+            <Link to="/sobre" className={`transition-colors ${isActive('/sobre')}`}>
               Sobre
             </Link>
           </nav>
@@ -68,13 +78,13 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 px-2 bg-white border-t border-lfcom-gray-200 animate-fade-in">
             <nav className="flex flex-col space-y-4">
-              <Link to="/dashboard" className="text-lfcom-black hover:text-lfcom-gray-500 font-medium py-2">
+              <Link to="/dashboard" className={`py-2 ${isActive('/dashboard')}`}>
                 Dashboard
               </Link>
-              <Link to="/analises" className="text-lfcom-black hover:text-lfcom-gray-500 font-medium py-2">
-                Análises
+              <Link to="/nova-analise" className={`py-2 ${isActive('/nova-analise')}`}>
+                Nova Análise
               </Link>
-              <Link to="/sobre" className="text-lfcom-black hover:text-lfcom-gray-500 font-medium py-2">
+              <Link to="/sobre" className={`py-2 ${isActive('/sobre')}`}>
                 Sobre
               </Link>
               <div className="pt-4 flex flex-col space-y-2">
