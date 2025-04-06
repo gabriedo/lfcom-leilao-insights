@@ -17,6 +17,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
+import ImoveisCaixa from "./pages/ImoveisCaixa";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -46,6 +47,7 @@ const App = () => (
                 <PropertyReportPage />
               </ProtectedRoute>
             } />
+            <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/como-funciona" element={<ComoFunciona />} />
             <Route path="/precos" element={<Precos />} />
