@@ -18,6 +18,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
 import ImoveisCaixa from "./pages/ImoveisCaixa";
+import PropertyDetails from "./pages/PropertyDetails";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -48,6 +49,7 @@ const App = () => (
               </ProtectedRoute>
             } />
             <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
+            <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/como-funciona" element={<ComoFunciona />} />
             <Route path="/precos" element={<Precos />} />

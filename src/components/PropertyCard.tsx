@@ -119,8 +119,12 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         </div>
 
         <div className="w-full flex space-x-2">
-          <Button variant="outline" className="w-1/2">Detalhes</Button>
-          <Button className="w-1/2">Analisar</Button>
+          <Button variant="outline" className="w-1/2" asChild>
+            <Link to={`/imoveis-caixa/${property.id}`}>Detalhes</Link>
+          </Button>
+          <Button className="w-1/2" asChild>
+            <Link to={`/nova-analise?propertyId=${property.id}`}>Analisar</Link>
+          </Button>
         </div>
       </CardFooter>
     </Card>

@@ -26,7 +26,7 @@ interface Property {
 }
 
 // Mock de dados para imóveis da Caixa
-const mockProperties: Property[] = [
+export const mockProperties: Property[] = [
   {
     id: "1",
     title: "Apartamento em São Paulo",
