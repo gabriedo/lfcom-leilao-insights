@@ -8,9 +8,9 @@ export default function NovaAnalise() {
       <div className="py-16 px-4">
         <div className="container mx-auto">
           <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-8">
+            <div className="text-center mb-10">
               <h1 className="text-3xl font-bold mb-2">Nova Análise de Imóvel</h1>
-              <p className="text-lfcom-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Preencha os dados e anexe os documentos para iniciar a análise completa do imóvel.
               </p>
             </div>
