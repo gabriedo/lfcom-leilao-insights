@@ -2,7 +2,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -74,7 +73,7 @@ export default function PropertyFilters({ filters, setFilters }: PropertyFilters
               </SelectTrigger>
               <SelectContent>
                 {cities.map((city) => (
-                  <SelectItem key={city} value={city === "Todas" ? "" : city}>
+                  <SelectItem key={city} value={city === "Todas" ? "all-cities" : city}>
                     {city}
                   </SelectItem>
                 ))}
@@ -92,7 +91,7 @@ export default function PropertyFilters({ filters, setFilters }: PropertyFilters
                 <SelectValue placeholder="Todos os tipos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os tipos</SelectItem>
+                <SelectItem value="all-types">Todos os tipos</SelectItem>
                 {propertyTypes.map((type) => (
                   <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
@@ -148,7 +147,7 @@ export default function PropertyFilters({ filters, setFilters }: PropertyFilters
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map((status) => (
-                  <SelectItem key={status} value={status === "Todos" ? "" : status}>
+                  <SelectItem key={status} value={status === "Todos" ? "all-status" : status}>
                     {status}
                   </SelectItem>
                 ))}

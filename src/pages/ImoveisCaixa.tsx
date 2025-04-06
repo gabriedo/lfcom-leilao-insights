@@ -130,8 +130,32 @@ const fetchProperties = async (filters: any = {}): Promise<Property[]> => {
   // Simulando um delay de rede
   await new Promise(resolve => setTimeout(resolve, 500));
   
-  // Aqui você implementaria filtros reais, mas por enquanto vamos apenas retornar o mock
-  return mockProperties;
+  let filteredProperties = [...mockProperties];
+  
+  // Aplicar filtros
+  if (filters.city && filters.city !== "all-cities") {
+    filteredProperties = filteredProperties.filter(prop => prop.city === filters.city);
+  }
+  
+  if (filters.propertyType && filters.propertyType !== "all-types") {
+    filteredProperties = filteredProperties.filter(prop => prop.propertyType === filters.propertyType);
+  }
+  
+  if (filters.priceMin > 0 || filters.priceMax < 1000000) {
+    filteredProperties = filteredProperties.filter(
+      prop => prop.price >= filters.priceMin && prop.price <= filters.priceMax
+    );
+  }
+  
+  if (filters.bedrooms > 0) {
+    filteredProperties = filteredProperties.filter(prop => prop.bedrooms >= filters.bedrooms);
+  }
+  
+  if (filters.status && filters.status !== "all-status") {
+    filteredProperties = filteredProperties.filter(prop => prop.status === filters.status);
+  }
+  
+  return filteredProperties;
 };
 
 export default function ImoveisCaixa() {
