@@ -2,13 +2,29 @@
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 export default function Hero() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    // Pequeno atraso para permitir a animação iniciar após o carregamento
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <section className="relative flex items-center bg-lfcom-white pt-20 pb-32">
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <div className="text-left">
+          <div 
+            className={`text-left transition-all duration-700 transform ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-tight mb-6">
               Análise Automatizada de Imóveis em Leilão
             </h1>
@@ -16,17 +32,43 @@ export default function Hero() {
               Tecnologia de ponta para avaliação completa de oportunidades em leilões imobiliários e vendas diretas por bancos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button className="bg-lfcom-black text-white hover:bg-lfcom-gray-800 h-12 px-8 rounded-md">
+              <Button 
+                className="bg-lfcom-black text-white hover:bg-lfcom-gray-800 h-12 px-8 rounded-md group"
+              >
                 <Link to="/nova-analise" className="flex items-center">
-                  Analisar Imóvel <ArrowRight className="ml-2 h-4 w-4" />
+                  Analisar Imóvel 
+                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
               </Button>
-              <Button variant="outline" className="border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100 h-12 px-8 rounded-md">
+              <Button 
+                variant="outline" 
+                className="border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100 h-12 px-8 rounded-md"
+              >
                 <Link to="/como-funciona">Como Funciona</Link>
               </Button>
             </div>
+            <div className="mt-6 flex items-center">
+              <div className="flex -space-x-2">
+                {[1, 2, 3, 4].map((i) => (
+                  <img 
+                    key={i}
+                    src={`https://randomuser.me/api/portraits/${i % 2 === 0 ? 'women' : 'men'}/${20 + i}.jpg`}
+                    alt={`User ${i}`}
+                    className="w-8 h-8 rounded-full border-2 border-white"
+                  />
+                ))}
+              </div>
+              <p className="ml-3 text-sm text-lfcom-gray-600">
+                +3.500 análises realizadas no último mês
+              </p>
+            </div>
           </div>
-          <div className="relative z-10">
+
+          <div 
+            className={`relative z-10 transition-all duration-1000 delay-300 transform ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
             <div className="bg-lfcom-gray-100 rounded-lg p-1">
               <div className="bg-white rounded-lg p-6 shadow-xl">
                 <div className="border-b border-lfcom-gray-200 pb-4 mb-4">
@@ -62,6 +104,9 @@ export default function Hero() {
                   </div>
                 </div>
               </div>
+            </div>
+            <div className="absolute -bottom-6 -right-6 h-24 w-24 bg-lfcom-black rounded-full flex items-center justify-center text-white font-bold text-center text-sm p-2 shadow-lg transform rotate-6">
+              Economia<br />de 40%<br />no preço
             </div>
           </div>
         </div>
