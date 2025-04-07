@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/hooks/use-toast";
 import { 
   AlertCircle, 
   Download, 
@@ -23,7 +23,8 @@ import {
   TrendingUp,
   ChevronDown,
   ChevronUp,
-  Calculator
+  Calculator,
+  QrCode
 } from "lucide-react";
 import { 
   Accordion,
@@ -37,6 +38,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import { generatePropertyReportPDF } from "@/utils/pdfService";
 
 type PropertyReportProps = {
   propertyId?: string;
@@ -44,6 +46,8 @@ type PropertyReportProps = {
 
 export default function PropertyReport({ propertyId }: PropertyReportProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const { toast } = useToast();
   
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
@@ -199,6 +203,52 @@ export default function PropertyReport({ propertyId }: PropertyReportProps) {
       { risk: "Problemas estruturais ocultos", probability: "Média", impact: "Alto", mitigation: "Inspeção técnica por engenheiro especializado" },
       { risk: "Ocupação irregular", probability: "Baixa", impact: "Alto", mitigation: "Verificação in loco antes da arrematação" }
     ]
+  };
+
+  const handleDownloadReport = async () => {
+    try {
+      setIsGeneratingPdf(true);
+      toast({
+        title: "Gerando relatório",
+        description: "Preparando seu PDF, por favor aguarde...",
+      });
+
+      const pdfBlob = await generatePropertyReportPDF(
+        propertyDetails,
+        registryAnalysis,
+        auctionAnalysis,
+        propertyValuation,
+        financialAnalysis,
+        riskAnalysis,
+        riskScores,
+        recommendations
+      );
+
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      
+      const downloadLink = document.createElement("a");
+      downloadLink.href = pdfUrl;
+      downloadLink.download = `Relatório-Imóvel-${propertyDetails.id}.pdf`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      URL.revokeObjectURL(pdfUrl);
+
+      toast({
+        title: "Relatório baixado com sucesso!",
+        description: "Seu PDF foi gerado e baixado.",
+      });
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar relatório",
+        description: "Ocorreu um erro ao gerar o PDF. Por favor, tente novamente."
+      });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
   };
 
   return (
@@ -882,8 +932,21 @@ export default function PropertyReport({ propertyId }: PropertyReportProps) {
           </Tabs>
           
           <div className="flex justify-end">
-            <Button variant="outline" className="bg-lfcom-black text-white border-lfcom-black hover:bg-lfcom-gray-800">
-              <Download className="mr-2 h-4 w-4" /> Baixar Relatório Completo
+            <Button 
+              variant="outline" 
+              className="bg-lfcom-black text-white border-lfcom-black hover:bg-lfcom-gray-800"
+              onClick={handleDownloadReport}
+              disabled={isGeneratingPdf}
+            >
+              {isGeneratingPdf ? (
+                <>Gerando PDF...</>
+              ) : (
+                <>
+                  <Download className="mr-2 h-4 w-4" /> 
+                  <QrCode className="mr-2 h-4 w-4" />
+                  Baixar Relatório Completo
+                </>
+              )}
             </Button>
           </div>
         </CardContent>
