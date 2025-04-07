@@ -19,6 +19,8 @@ import Profile from "./pages/Profile";
 import FAQ from "./pages/FAQ";
 import ImoveisCaixa from "./pages/ImoveisCaixa";
 import PropertyDetails from "./pages/PropertyDetails";
+import Conteudos from "./pages/Conteudos";
+import ConteudoDetalhe from "./pages/ConteudoDetalhe";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 
@@ -50,6 +52,8 @@ const App = () => (
             } />
             <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
             <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
+            <Route path="/conteudos" element={<Conteudos />} />
+            <Route path="/conteudos/:type/:id" element={<ConteudoDetalhe />} />
             <Route path="/sobre" element={<Sobre />} />
             <Route path="/como-funciona" element={<ComoFunciona />} />
             <Route path="/precos" element={<Precos />} />

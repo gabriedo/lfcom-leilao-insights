@@ -74,6 +74,9 @@ export default function Navbar() {
             <Link to="/imoveis-caixa" className={`transition-colors ${isActive('/imoveis-caixa')}`}>
               Imóveis Caixa
             </Link>
+            <Link to="/conteudos" className={`transition-colors ${isActive('/conteudos')}`}>
+              Conteúdos
+            </Link>
             <Link to="/como-funciona" className={`transition-colors ${isActive('/como-funciona')}`}>
               Como Funciona
             </Link>
@@ -155,6 +158,9 @@ export default function Navbar() {
               </Link>
               <Link to="/imoveis-caixa" className={`py-2 ${isActive('/imoveis-caixa')}`}>
                 Imóveis Caixa
+              </Link>
+              <Link to="/conteudos" className={`py-2 ${isActive('/conteudos')}`}>
+                Conteúdos
               </Link>
               <Link to="/como-funciona" className={`py-2 ${isActive('/como-funciona')}`}>
                 Como Funciona
