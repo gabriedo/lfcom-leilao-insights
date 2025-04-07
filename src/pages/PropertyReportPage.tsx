@@ -17,7 +17,7 @@ export default function PropertyReportPage() {
             </p>
           </div>
           
-          <PropertyReport />
+          <PropertyReport propertyId={id} />
         </div>
       </div>
     </Layout>
