@@ -4,10 +4,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Bed, Bath, Maximize2, MapPin, Tag } from "lucide-react";
+import { Bed, Bath, Maximize2, MapPin, Tag, Calendar, Home, Square } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Property {
   id: string;
+  url?: string;
   title: string;
   address: string;
   city: string;
@@ -16,11 +19,29 @@ interface Property {
   originalPrice?: number;
   discount?: number;
   area: number;
+  privateArea?: number;
   bedrooms: number;
   bathrooms: number;
+  parking: number;
   imageUrl: string;
+  images?: string[];
   propertyType: string;
-  status: string;
+  modality: "Leilão SFI" | "Licitação Aberta" | "Venda Online" | "Venda Direta Online";
+  fim_1?: string;
+  fim_2?: string;
+  fim_venda_online?: string;
+  acceptsFinancing: boolean;
+  acceptsFGTS: boolean;
+  acceptsInstallments?: boolean;
+  acceptsConsortium?: boolean;
+  description?: string;
+  observations?: string;
+  registryNumber?: string;
+  registryUrl?: string;
+  propertyRegistration?: string;
+  editalNumber?: string;
+  editalUrl?: string;
+  salesRulesUrl?: string;
 }
 
 interface PropertyCardProps {
@@ -36,6 +57,62 @@ export default function PropertyCard({ property }: PropertyCardProps) {
     }).format(value);
   };
 
+  // Helper to determine the end date to show
+  const getEndDate = () => {
+    let date: string | undefined;
+    let label: string = '';
+    
+    switch(property.modality) {
+      case 'Leilão SFI':
+        date = property.fim_2 || property.fim_1;
+        label = property.fim_2 ? '2º Leilão' : '1º Leilão';
+        break;
+      case 'Licitação Aberta':
+        date = property.fim_venda_online;
+        label = 'Fim Licitação';
+        break;
+      case 'Venda Online':
+        date = property.fim_venda_online;
+        label = 'Fim Oferta';
+        break;
+      case 'Venda Direta Online':
+        label = 'Compra Imediata';
+        break;
+    }
+
+    if (date) {
+      try {
+        return {
+          formatted: format(parseISO(date), "dd/MM/yyyy", { locale: ptBR }),
+          label
+        };
+      } catch (e) {
+        console.error("Error formatting date:", e);
+        return { formatted: date, label };
+      }
+    }
+    
+    return { formatted: '', label };
+  };
+
+  const endDate = getEndDate();
+
+  // Get modality background color
+  const getModalityColor = () => {
+    switch(property.modality) {
+      case 'Leilão SFI':
+        return "bg-amber-500 hover:bg-amber-500/90";
+      case 'Licitação Aberta':
+        return "bg-emerald-600 hover:bg-emerald-600/90";
+      case 'Venda Online':
+        return "bg-blue-500 hover:bg-blue-500/90";
+      case 'Venda Direta Online':
+        return "bg-purple-500 hover:bg-purple-500/90";
+      default:
+        return "bg-gray-500 hover:bg-gray-500/90";
+    }
+  };
+
   return (
     <Card className="overflow-hidden border-muted hover:shadow-md transition-shadow duration-300">
       <div className="relative h-48 overflow-hidden">
@@ -46,13 +123,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         />
         <div className="absolute top-0 left-0 m-3">
           <Badge 
-            variant={property.status === "Desocupado" ? "default" : "outline"}
-            className={property.status === "Desocupado" ? 
-              "bg-green-500 hover:bg-green-500/90" : 
-              "bg-white text-black hover:bg-gray-100"
-            }
+            className={getModalityColor()}
           >
-            {property.status}
+            {property.modality}
           </Badge>
         </div>
         {property.discount && (
@@ -63,6 +136,17 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             >
               {property.discount}% OFF
             </Badge>
+          </div>
+        )}
+        {endDate.formatted && (
+          <div className="absolute bottom-0 left-0 right-0 bg-black/70 px-3 py-1.5 flex justify-between items-center">
+            <span className="text-white text-xs flex items-center">
+              <Calendar className="h-3 w-3 mr-1" />
+              {endDate.label}
+            </span>
+            <span className="text-white text-xs font-semibold">
+              {endDate.formatted}
+            </span>
           </div>
         )}
       </div>
@@ -77,27 +161,34 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <h3 className="font-semibold text-lg mb-1">{property.title}</h3>
         <p className="text-sm text-muted-foreground mb-3">{property.address}</p>
         
-        <div className="flex justify-between items-end">
-          <div>
-            <div className="flex items-center space-x-4 text-sm">
-              {property.bedrooms > 0 && (
-                <div className="flex items-center">
-                  <Bed className="h-4 w-4 mr-1" />
-                  <span>{property.bedrooms}</span>
-                </div>
-              )}
-              {property.bathrooms > 0 && (
-                <div className="flex items-center">
-                  <Bath className="h-4 w-4 mr-1" />
-                  <span>{property.bathrooms}</span>
-                </div>
-              )}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center flex-wrap gap-4 text-sm">
+            {property.bedrooms > 0 && (
               <div className="flex items-center">
-                <Maximize2 className="h-4 w-4 mr-1" />
-                <span>{property.area} m²</span>
+                <Bed className="h-4 w-4 mr-1" />
+                <span>{property.bedrooms}</span>
               </div>
+            )}
+            {property.parking > 0 && (
+              <div className="flex items-center">
+                <Square className="h-4 w-4 mr-1" />
+                <span>{property.parking} vaga{property.parking > 1 ? 's' : ''}</span>
+              </div>
+            )}
+            <div className="flex items-center">
+              <Maximize2 className="h-4 w-4 mr-1" />
+              <span>{property.area} m²</span>
             </div>
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-3">
+          {property.acceptsFinancing && (
+            <Badge variant="secondary" className="text-xs">Financiamento</Badge>
+          )}
+          {property.acceptsFGTS && (
+            <Badge variant="secondary" className="text-xs">FGTS</Badge>
+          )}
         </div>
       </CardContent>
       <CardFooter className="flex flex-col items-start border-t p-5 space-y-2">

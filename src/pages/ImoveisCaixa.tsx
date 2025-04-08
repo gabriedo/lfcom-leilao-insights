@@ -7,28 +7,48 @@ import { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
-// Tipo para propriedade imobiliária
+// Enhanced Property interface
 interface Property {
   id: string;
+  url?: string;
   title: string;
   address: string;
   city: string;
   state: string;
-  price: number;
-  originalPrice?: number;
+  price: number; // sale_value
+  originalPrice?: number; // preco_avaliacao
   discount?: number;
-  area: number;
-  bedrooms: number;
-  bathrooms: number;
+  area: number; // total_area
+  privateArea?: number; // private_area
+  bedrooms: number; // quartos
+  bathrooms: number; // banheiros
+  parking: number; // garagem
   imageUrl: string;
-  propertyType: string;
-  status: string;
+  images?: string[];
+  propertyType: string; // type
+  modality: "Leilão SFI" | "Licitação Aberta" | "Venda Online" | "Venda Direta Online";
+  fim_1?: string; // Data do 1º leilão (SFI)
+  fim_2?: string; // Data do 2º leilão (SFI)
+  fim_venda_online?: string; // Data fim venda online/licitação
+  acceptsFinancing: boolean; // aceita_financiamento
+  acceptsFGTS: boolean; // aceita_FGTS
+  acceptsInstallments?: boolean; // aceita_parcelamento
+  acceptsConsortium?: boolean; // aceita_consorcio
+  description?: string;
+  observations?: string; // ps
+  registryNumber?: string; // matricula_number
+  registryUrl?: string; // matricula_url
+  propertyRegistration?: string; // inscricao_imobiliaria
+  editalNumber?: string; // number_property_edital
+  editalUrl?: string; // edital_url
+  salesRulesUrl?: string; // regras_de_venda_url
 }
 
-// Mock de dados para imóveis da Caixa
+// Enhanced mock data for Imóveis da Caixa
 export const mockProperties: Property[] = [
   {
     id: "1",
+    url: "https://www.caixa.gov.br/voce/habitacao/imoveis-venda/Paginas/default.aspx",
     title: "Apartamento em São Paulo",
     address: "Rua Augusta, 123",
     city: "São Paulo",
@@ -37,14 +57,31 @@ export const mockProperties: Property[] = [
     originalPrice: 500000,
     discount: 16,
     area: 78,
+    privateArea: 70,
     bedrooms: 2,
     bathrooms: 1,
+    parking: 1,
     imageUrl: "https://picsum.photos/400/300",
+    images: ["https://picsum.photos/400/300", "https://picsum.photos/400/301", "https://picsum.photos/400/302"],
     propertyType: "Apartamento",
-    status: "Ocupado"
+    modality: "Leilão SFI",
+    fim_1: "2025-05-15",
+    fim_2: "2025-05-30",
+    acceptsFinancing: true,
+    acceptsFGTS: true,
+    acceptsInstallments: false,
+    acceptsConsortium: false,
+    description: "Apartamento bem localizado próximo à Avenida Paulista",
+    observations: "Imóvel ocupado",
+    registryNumber: "123456",
+    registryUrl: "https://example.com/matricula",
+    propertyRegistration: "000.000.0001.0001.0001",
+    editalNumber: "0001/2025",
+    editalUrl: "https://example.com/edital"
   },
   {
     id: "2",
+    url: "https://www.caixa.gov.br/voce/habitacao/imoveis-venda/Paginas/default.aspx",
     title: "Casa em Osasco",
     address: "Av. dos Autonomistas, 456",
     city: "Osasco",
@@ -53,14 +90,23 @@ export const mockProperties: Property[] = [
     originalPrice: 430000,
     discount: 12,
     area: 120,
+    privateArea: 110,
     bedrooms: 3,
     bathrooms: 2,
+    parking: 2,
     imageUrl: "https://picsum.photos/400/302",
+    images: ["https://picsum.photos/400/302", "https://picsum.photos/400/303", "https://picsum.photos/400/304"],
     propertyType: "Casa",
-    status: "Desocupado"
+    modality: "Venda Direta Online",
+    acceptsFinancing: true,
+    acceptsFGTS: true,
+    acceptsInstallments: true,
+    acceptsConsortium: true,
+    description: "Casa ampla com quintal em bairro residencial"
   },
   {
     id: "3",
+    url: "https://www.caixa.gov.br/voce/habitacao/imoveis-venda/Paginas/default.aspx",
     title: "Apartamento em Santo André",
     address: "Rua das Figueiras, 789",
     city: "Santo André",
@@ -69,14 +115,25 @@ export const mockProperties: Property[] = [
     originalPrice: 350000,
     discount: 11,
     area: 65,
+    privateArea: 60,
     bedrooms: 2,
     bathrooms: 1,
+    parking: 1,
     imageUrl: "https://picsum.photos/400/301",
+    images: ["https://picsum.photos/400/301", "https://picsum.photos/400/305", "https://picsum.photos/400/306"],
     propertyType: "Apartamento",
-    status: "Desocupado"
+    modality: "Licitação Aberta",
+    fim_venda_online: "2025-06-15",
+    acceptsFinancing: false,
+    acceptsFGTS: true,
+    acceptsInstallments: true,
+    acceptsConsortium: false,
+    editalNumber: "0002/2025",
+    editalUrl: "https://example.com/edital2"
   },
   {
     id: "4",
+    url: "https://www.caixa.gov.br/voce/habitacao/imoveis-venda/Paginas/default.aspx",
     title: "Casa em Guarulhos",
     address: "Av. Tiradentes, 555",
     city: "Guarulhos",
@@ -85,11 +142,21 @@ export const mockProperties: Property[] = [
     originalPrice: 550000,
     discount: 13,
     area: 150,
+    privateArea: 145,
     bedrooms: 3,
     bathrooms: 2,
+    parking: 2,
     imageUrl: "https://picsum.photos/400/303",
+    images: ["https://picsum.photos/400/303", "https://picsum.photos/400/307", "https://picsum.photos/400/308"],
     propertyType: "Casa",
-    status: "Ocupado"
+    modality: "Venda Online",
+    fim_venda_online: "2025-05-20",
+    acceptsFinancing: true,
+    acceptsFGTS: false,
+    acceptsInstallments: false,
+    acceptsConsortium: false,
+    description: "Casa espaçosa em condomínio fechado",
+    observations: "Necessita de pequenas reformas"
   },
   {
     id: "5",
@@ -101,11 +168,21 @@ export const mockProperties: Property[] = [
     originalPrice: 400000,
     discount: 12.5,
     area: 70,
+    privateArea: 65,
     bedrooms: 2,
     bathrooms: 1,
+    parking: 1,
     imageUrl: "https://picsum.photos/400/304",
+    images: ["https://picsum.photos/400/304", "https://picsum.photos/400/309", "https://picsum.photos/400/310"],
     propertyType: "Apartamento",
-    status: "Desocupado"
+    modality: "Leilão SFI",
+    fim_1: "2025-06-10",
+    fim_2: "2025-06-25",
+    acceptsFinancing: true,
+    acceptsFGTS: true,
+    description: "Apartamento em excelente localização no centro de Campinas",
+    editalNumber: "0003/2025",
+    editalUrl: "https://example.com/edital3"
   },
   {
     id: "6",
@@ -119,14 +196,41 @@ export const mockProperties: Property[] = [
     area: 300,
     bedrooms: 0,
     bathrooms: 0,
+    parking: 0,
     imageUrl: "https://picsum.photos/400/305",
+    images: ["https://picsum.photos/400/305", "https://picsum.photos/400/311"],
     propertyType: "Terreno",
-    status: "Desocupado"
+    modality: "Venda Direta Online",
+    acceptsFinancing: true,
+    acceptsFGTS: false,
+    acceptsInstallments: true,
+    acceptsConsortium: true,
+    description: "Terreno plano em área de expansão urbana",
+    registryNumber: "789012",
+    registryUrl: "https://example.com/matricula3",
+    propertyRegistration: "000.000.0003.0001.0001"
   }
 ];
 
-// Função para buscar imóveis (simulação de API)
-const fetchProperties = async (filters: any = {}): Promise<Property[]> => {
+// Enhanced filter interface
+interface PropertyFilters {
+  city: string;
+  state: string;
+  propertyType: string;
+  priceMin: number;
+  priceMax: number;
+  bedrooms: number;
+  parking: number;
+  modality: string;
+  acceptsFinancing: boolean | null;
+  acceptsFGTS: boolean | null;
+  minDiscount: number;
+  areaMin: number;
+  sortBy: string;
+}
+
+// Function to fetch properties (simulação de API)
+const fetchProperties = async (filters: PropertyFilters): Promise<Property[]> => {
   // Simulando um delay de rede
   await new Promise(resolve => setTimeout(resolve, 500));
   
@@ -137,8 +241,16 @@ const fetchProperties = async (filters: any = {}): Promise<Property[]> => {
     filteredProperties = filteredProperties.filter(prop => prop.city === filters.city);
   }
   
+  if (filters.state && filters.state !== "all-states") {
+    filteredProperties = filteredProperties.filter(prop => prop.state === filters.state);
+  }
+  
   if (filters.propertyType && filters.propertyType !== "all-types") {
     filteredProperties = filteredProperties.filter(prop => prop.propertyType === filters.propertyType);
+  }
+  
+  if (filters.modality && filters.modality !== "all-modalities") {
+    filteredProperties = filteredProperties.filter(prop => prop.modality === filters.modality);
   }
   
   if (filters.priceMin > 0 || filters.priceMax < 1000000) {
@@ -151,21 +263,83 @@ const fetchProperties = async (filters: any = {}): Promise<Property[]> => {
     filteredProperties = filteredProperties.filter(prop => prop.bedrooms >= filters.bedrooms);
   }
   
-  if (filters.status && filters.status !== "all-status") {
-    filteredProperties = filteredProperties.filter(prop => prop.status === filters.status);
+  if (filters.parking > 0) {
+    filteredProperties = filteredProperties.filter(prop => prop.parking >= filters.parking);
+  }
+  
+  if (filters.acceptsFinancing !== null) {
+    filteredProperties = filteredProperties.filter(prop => prop.acceptsFinancing === filters.acceptsFinancing);
+  }
+  
+  if (filters.acceptsFGTS !== null) {
+    filteredProperties = filteredProperties.filter(prop => prop.acceptsFGTS === filters.acceptsFGTS);
+  }
+  
+  if (filters.minDiscount > 0) {
+    filteredProperties = filteredProperties.filter(prop => 
+      prop.discount !== undefined && prop.discount >= filters.minDiscount
+    );
+  }
+  
+  if (filters.areaMin > 0) {
+    filteredProperties = filteredProperties.filter(prop => prop.area >= filters.areaMin);
+  }
+  
+  // Sort properties
+  if (filters.sortBy) {
+    switch (filters.sortBy) {
+      case 'price-asc':
+        filteredProperties.sort((a, b) => a.price - b.price);
+        break;
+      case 'price-desc':
+        filteredProperties.sort((a, b) => b.price - a.price);
+        break;
+      case 'discount-desc':
+        filteredProperties.sort((a, b) => (b.discount || 0) - (a.discount || 0));
+        break;
+      case 'end-date-asc':
+        filteredProperties.sort((a, b) => {
+          const dateA = getEndDate(a);
+          const dateB = getEndDate(b);
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+          return new Date(dateA).getTime() - new Date(dateB).getTime();
+        });
+        break;
+      default:
+        break;
+    }
   }
   
   return filteredProperties;
 };
 
+// Helper function to get the end date based on modality
+const getEndDate = (property: Property): string | undefined => {
+  if (property.modality === "Leilão SFI") {
+    return property.fim_2 || property.fim_1;
+  } else if (property.modality === "Licitação Aberta" || 
+           property.modality === "Venda Online") {
+    return property.fim_venda_online;
+  }
+  return undefined;
+};
+
 export default function ImoveisCaixa() {
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<PropertyFilters>({
     city: "",
+    state: "",
     propertyType: "",
+    modality: "",
     priceMin: 0,
     priceMax: 1000000,
     bedrooms: 0,
-    status: ""
+    parking: 0,
+    acceptsFinancing: null,
+    acceptsFGTS: null,
+    minDiscount: 0,
+    areaMin: 0,
+    sortBy: ""
   });
 
   const { data: properties, isLoading } = useQuery({
