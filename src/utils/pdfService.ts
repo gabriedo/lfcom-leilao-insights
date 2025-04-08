@@ -1,7 +1,17 @@
 
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import 'jspdf-autotable';
 import QRCode from 'qrcode';
+
+// Add type augmentation for jsPDF to include the autoTable-specific properties
+declare module 'jspdf' {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+    autoTable: (options: any) => jsPDF;
+  }
+}
 
 /**
  * Generate a QR code as a data URL
@@ -179,7 +189,7 @@ export const generatePropertyReportPDF = async (propertyDetails: any,
     entry.acquisition
   ]);
   
-  autoTable(doc, {
+  doc.autoTable({
     startY: 60,
     head: [['Proprietário', 'Período', 'Forma de Aquisição']],
     body: ownerData,
@@ -227,7 +237,7 @@ export const generatePropertyReportPDF = async (propertyDetails: any,
     prop.pricePerSqm
   ]);
   
-  autoTable(doc, {
+  doc.autoTable({
     startY: 60,
     head: [['Endereço', 'Área', 'Preço', 'R$/m²']],
     body: comparableData,
@@ -250,7 +260,7 @@ export const generatePropertyReportPDF = async (propertyDetails: any,
     cost.value
   ]);
   
-  autoTable(doc, {
+  doc.autoTable({
     startY: doc.lastAutoTable.finalY + 30,
     head: [['Item', 'Valor']],
     body: acquisitionData,
@@ -269,7 +279,7 @@ export const generatePropertyReportPDF = async (propertyDetails: any,
     cost.value
   ]);
   
-  autoTable(doc, {
+  doc.autoTable({
     startY: doc.lastAutoTable.finalY - 25,
     head: [['Item', 'Valor']],
     body: renovationData,
