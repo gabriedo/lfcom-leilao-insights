@@ -1,4 +1,3 @@
-
 import { Menu, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -33,7 +32,6 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   
-  // Close mobile menu when changing routes
   useEffect(() => {
     setMobileMenuOpen(false);
   }, [location]);
@@ -42,7 +40,6 @@ export default function Navbar() {
     return location.pathname === path ? "text-lfcom-black font-semibold" : "text-lfcom-gray-600 hover:text-lfcom-black";
   };
 
-  // Get initials from user name
   const getUserInitials = () => {
     if (!user?.name) return "U";
     return user.name
@@ -63,7 +60,6 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             <Link to="/dashboard" className={`transition-colors ${isActive('/dashboard')}`}>
               Dashboard
@@ -79,6 +75,9 @@ export default function Navbar() {
             </Link>
             <Link to="/como-funciona" className={`transition-colors ${isActive('/como-funciona')}`}>
               Como Funciona
+            </Link>
+            <Link to="/assessoria" className={`transition-colors ${isActive('/assessoria')}`}>
+              Assessoria
             </Link>
             <Link to="/precos" className={`transition-colors ${isActive('/precos')}`}>
               Preços
@@ -135,7 +134,6 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <Button 
             variant="ghost" 
             size="icon" 
@@ -146,7 +144,6 @@ export default function Navbar() {
           </Button>
         </div>
 
-        {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden py-4 px-2 bg-white border-t border-lfcom-gray-200 animate-fade-in">
             <nav className="flex flex-col space-y-4">
@@ -164,6 +161,9 @@ export default function Navbar() {
               </Link>
               <Link to="/como-funciona" className={`py-2 ${isActive('/como-funciona')}`}>
                 Como Funciona
+              </Link>
+              <Link to="/assessoria" className={`py-2 ${isActive('/assessoria')}`}>
+                Assessoria
               </Link>
               <Link to="/precos" className={`py-2 ${isActive('/precos')}`}>
                 Preços
