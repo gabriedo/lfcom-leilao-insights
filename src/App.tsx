@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -24,6 +23,7 @@ import ConteudoDetalhe from "./pages/ConteudoDetalhe";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import Assessoria from "./pages/Assessoria";
+import Contato from "./pages/Contato";
 
 const queryClient = new QueryClient();
 
@@ -36,37 +36,22 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/nova-analise" element={
-              <ProtectedRoute>
-                <NovaAnalise />
-              </ProtectedRoute>
-            } />
-            <Route path="/relatorio/:id" element={
-              <ProtectedRoute>
-                <PropertyReportPage />
-              </ProtectedRoute>
-            } />
-            <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
-            <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
-            <Route path="/conteudos" element={<Conteudos />} />
-            <Route path="/conteudos/:type/:id" element={<ConteudoDetalhe />} />
-            <Route path="/sobre" element={<Sobre />} />
-            <Route path="/como-funciona" element={<ComoFunciona />} />
-            <Route path="/precos" element={<Precos />} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/assessoria" element={<Assessoria />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/perfil" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
+            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/nova-analise" element={<ProtectedRoute><NovaAnalise /></ProtectedRoute>} />
+            <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
+            <Route path="/imoveis/:id" element={<PropertyDetails />} />
+            <Route path="/relatorio/:id" element={<PropertyReportPage />} />
+            <Route path="/conteudos" element={<Conteudos />} />
+            <Route path="/conteudos/:id" element={<ConteudoDetalhe />} />
+            <Route path="/como-funciona" element={<ComoFunciona />} />
+            <Route path="/assessoria" element={<Assessoria />} />
+            <Route path="/contato" element={<Contato />} />
+            <Route path="/precos" element={<Precos />} />
+            <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/sobre" element={<Sobre />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
