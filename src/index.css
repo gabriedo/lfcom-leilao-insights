@@ -76,4 +76,19 @@
   .lfcom-card-gradient {
     @apply bg-gradient-to-br from-white to-lfcom-gray-100 backdrop-blur-sm;
   }
+  
+  /* Responsive padding utility */
+  .responsive-container {
+    @apply px-4 md:px-6 lg:px-8 xl:px-12 mx-auto;
+  }
+  
+  /* Mobile-first spacing utility */
+  .responsive-section {
+    @apply py-8 md:py-12 lg:py-16;
+  }
+  
+  /* Responsive text sizing utility */
+  .responsive-heading {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold;
+  }
 }
