@@ -1,3 +1,4 @@
+
 import { Menu, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -13,7 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-export default function Navbar() {
+interface NavbarProps {
+  isDarkMode?: boolean;
+}
+
+export default function Navbar({ isDarkMode = false }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
@@ -36,8 +41,27 @@ export default function Navbar() {
     setMobileMenuOpen(false);
   }, [location]);
 
+  const getNavbarBackground = () => {
+    if (isDarkMode) {
+      return isScrolled ? 'bg-black shadow-md' : 'bg-black';
+    }
+    return isScrolled ? 'bg-white shadow-md' : 'bg-transparent';
+  };
+
+  const getTextColor = () => {
+    if (isDarkMode) {
+      return 'text-white';
+    }
+    return isScrolled ? 'text-lfcom-black' : 'text-lfcom-black';
+  };
+
   const isActive = (path: string) => {
-    return location.pathname === path ? "text-lfcom-black font-semibold" : "text-lfcom-gray-600 hover:text-lfcom-black";
+    const activeClass = isDarkMode ? "text-white font-semibold" : "text-lfcom-black font-semibold";
+    const inactiveClass = isDarkMode 
+      ? "text-gray-300 hover:text-white" 
+      : "text-lfcom-gray-600 hover:text-lfcom-black";
+    
+    return location.pathname === path ? activeClass : inactiveClass;
   };
 
   const getUserInitials = () => {
@@ -51,11 +75,11 @@ export default function Navbar() {
   };
 
   return (
-    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${isScrolled ? 'bg-white shadow-md' : 'bg-transparent'}`}>
+    <header className={`fixed top-0 w-full z-50 transition-all duration-300 ${getNavbarBackground()}`}>
       <div className="container mx-auto px-4 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
-            <Link to="/" className="text-2xl font-bold text-lfcom-black">
+            <Link to="/" className={`text-2xl font-bold ${getTextColor()}`}>
               LFCOM
             </Link>
           </div>
@@ -93,7 +117,7 @@ export default function Navbar() {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                     <Avatar>
-                      <AvatarFallback className="bg-lfcom-black text-white">
+                      <AvatarFallback className={isDarkMode ? "bg-white text-black" : "bg-lfcom-black text-white"}>
                         {getUserInitials()}
                       </AvatarFallback>
                     </Avatar>
@@ -124,10 +148,21 @@ export default function Navbar() {
               </DropdownMenu>
             ) : (
               <>
-                <Button variant="outline" className="border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100">
+                <Button 
+                  variant={isDarkMode ? "outline" : "outline"} 
+                  className={isDarkMode 
+                    ? "border-white text-white hover:bg-white/10" 
+                    : "border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100"
+                  }
+                >
                   <Link to="/login">Entrar</Link>
                 </Button>
-                <Button className="bg-lfcom-black text-white hover:bg-lfcom-gray-800">
+                <Button 
+                  className={isDarkMode 
+                    ? "bg-white text-black hover:bg-gray-200" 
+                    : "bg-lfcom-black text-white hover:bg-lfcom-gray-800"
+                  }
+                >
                   <Link to="/register">Começar</Link>
                 </Button>
               </>
@@ -137,7 +172,7 @@ export default function Navbar() {
           <Button 
             variant="ghost" 
             size="icon" 
-            className="md:hidden"
+            className={`md:hidden ${isDarkMode ? 'text-white hover:bg-white/10' : ''}`}
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <Menu className="h-6 w-6" />
@@ -145,7 +180,7 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 px-2 bg-white border-t border-lfcom-gray-200 animate-fade-in">
+          <div className={`md:hidden py-4 px-2 ${isDarkMode ? 'bg-black/95' : 'bg-white'} border-t ${isDarkMode ? 'border-white/20' : 'border-lfcom-gray-200'} animate-fade-in`}>
             <nav className="flex flex-col space-y-4">
               <Link to="/dashboard" className={`py-2 ${isActive('/dashboard')}`}>
                 Dashboard
@@ -176,19 +211,22 @@ export default function Navbar() {
                   <>
                     <div className="flex items-center space-x-2 py-2">
                       <Avatar>
-                        <AvatarFallback className="bg-lfcom-black text-white">
+                        <AvatarFallback className={isDarkMode ? "bg-white text-black" : "bg-lfcom-black text-white"}>
                           {getUserInitials()}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">{user?.name}</span>
+                      <span className={`font-medium ${isDarkMode ? 'text-white' : ''}`}>{user?.name}</span>
                     </div>
-                    <Link to="/perfil" className="py-2 flex items-center">
+                    <Link to="/perfil" className={`py-2 flex items-center ${isDarkMode ? 'text-gray-300 hover:text-white' : ''}`}>
                       <User className="h-4 w-4 mr-2" />
                       Perfil
                     </Link>
                     <Button 
                       variant="outline" 
-                      className="w-full border-red-600 text-red-600 hover:bg-red-50"
+                      className={isDarkMode 
+                        ? "w-full border-red-400 text-red-400 hover:bg-red-900/20" 
+                        : "w-full border-red-600 text-red-600 hover:bg-red-50"
+                      }
                       onClick={logout}
                     >
                       <LogOut className="h-4 w-4 mr-2" />
@@ -197,10 +235,21 @@ export default function Navbar() {
                   </>
                 ) : (
                   <>
-                    <Button variant="outline" className="w-full border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100">
+                    <Button 
+                      variant="outline" 
+                      className={isDarkMode 
+                        ? "w-full border-white text-white hover:bg-white/10" 
+                        : "w-full border-lfcom-black text-lfcom-black hover:bg-lfcom-gray-100"
+                      }
+                    >
                       <Link to="/login">Entrar</Link>
                     </Button>
-                    <Button className="w-full bg-lfcom-black text-white hover:bg-lfcom-gray-800">
+                    <Button 
+                      className={isDarkMode 
+                        ? "w-full bg-white text-black hover:bg-gray-300" 
+                        : "w-full bg-lfcom-black text-white hover:bg-lfcom-gray-800"
+                      }
+                    >
                       <Link to="/register">Começar</Link>
                     </Button>
                   </>
