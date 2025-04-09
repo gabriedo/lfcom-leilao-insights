@@ -25,6 +25,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
 import Assessoria from "./pages/Assessoria";
 import Contato from "./pages/Contato";
+import MeuPlano from "./pages/MeuPlano";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/nova-analise" element={<ProtectedRoute><NovaAnalise /></ProtectedRoute>} />
+            <Route path="/meu-plano" element={<ProtectedRoute><MeuPlano /></ProtectedRoute>} />
             <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
             <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
             <Route path="/relatorio/:id" element={<PropertyReportPage />} />
