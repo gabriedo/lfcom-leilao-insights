@@ -1,6 +1,6 @@
 
-import React from "react";
-import { useParams } from "react-router-dom";
+import React, { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -13,12 +13,16 @@ import { Bed, Bath, Maximize2, MapPin, CalendarDays, Home, Info, Building, Star,
 import { Link } from "react-router-dom";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 // Import mockProperties from ImoveisCaixa to use the same data
 import { mockProperties } from "./ImoveisCaixa";
 
 export default function PropertyDetails() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
   
   const { data: property, isLoading } = useQuery({
     queryKey: ['property', id],
@@ -44,6 +48,43 @@ export default function PropertyDetails() {
       currency: 'BRL',
       maximumFractionDigits: 0
     }).format(value);
+  };
+
+  // Generate property report directly
+  const handleGenerateReport = async () => {
+    if (!property) return;
+    
+    setIsGeneratingReport(true);
+    toast({
+      title: "Gerando relatório",
+      description: "Estamos analisando o imóvel e preparando seu relatório...",
+    });
+    
+    try {
+      // Simulate API call delay for report generation
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Generate a random report ID
+      const reportId = Math.floor(Math.random() * 100000).toString();
+      
+      // Navigate to the report page
+      navigate(`/relatorio/${reportId}`);
+      
+      // Successful toast message
+      toast({
+        title: "Relatório gerado com sucesso",
+        description: "Seu relatório de análise foi criado e está disponível para visualização.",
+      });
+    } catch (error) {
+      console.error("Error generating report:", error);
+      toast({
+        variant: "destructive",
+        title: "Erro ao gerar relatório",
+        description: "Ocorreu um problema ao analisar o imóvel. Por favor, tente novamente.",
+      });
+    } finally {
+      setIsGeneratingReport(false);
+    }
   };
 
   // Helper to determine the auction details based on modality
@@ -548,10 +589,20 @@ export default function PropertyDetails() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
-                  <Button className="w-full" size="lg" asChild>
-                    <Link to={`/nova-analise?propertyId=${property.id}`}>
-                      Analisar este imóvel
-                    </Link>
+                  <Button 
+                    className="w-full" 
+                    size="lg" 
+                    onClick={handleGenerateReport}
+                    disabled={isGeneratingReport}
+                  >
+                    {isGeneratingReport ? (
+                      <>
+                        <span className="animate-pulse mr-2">•</span>
+                        Gerando análise...
+                      </>
+                    ) : (
+                      "Analisar este imóvel"
+                    )}
                   </Button>
                   
                   {property.url && (
@@ -637,10 +688,8 @@ export default function PropertyDetails() {
                   </div>
                 </div>
                 
-                <Button variant="ghost" className="w-full" size="sm" asChild>
-                  <Link to={`/nova-analise?propertyId=${property.id}`}>
-                    Ver análise completa
-                  </Link>
+                <Button variant="ghost" className="w-full" size="sm" onClick={handleGenerateReport} disabled={isGeneratingReport}>
+                  Ver análise completa
                 </Button>
               </CardContent>
             </Card>
