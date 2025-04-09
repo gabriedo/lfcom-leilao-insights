@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
@@ -41,7 +42,7 @@ const App = () => (
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/nova-analise" element={<ProtectedRoute><NovaAnalise /></ProtectedRoute>} />
             <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
-            <Route path="/imoveis/:id" element={<PropertyDetails />} />
+            <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
             <Route path="/relatorio/:id" element={<PropertyReportPage />} />
             <Route path="/conteudos" element={<Conteudos />} />
             <Route path="/conteudos/:id" element={<ConteudoDetalhe />} />
