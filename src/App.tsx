@@ -31,6 +31,7 @@ import Ajuda from "./pages/Ajuda";
 import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Recursos from "./pages/Recursos";
+import ConhecerMetodologia from "./pages/ConhecerMetodologia";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="/conteudos" element={<Conteudos />} />
             <Route path="/conteudos/:id" element={<ConteudoDetalhe />} />
             <Route path="/como-funciona" element={<ComoFunciona />} />
+            <Route path="/conhecer-metodologia" element={<ConhecerMetodologia />} />
             <Route path="/assessoria" element={<Assessoria />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/precos" element={<Precos />} />
