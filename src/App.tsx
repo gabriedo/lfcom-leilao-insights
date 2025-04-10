@@ -27,6 +27,10 @@ import Assessoria from "./pages/Assessoria";
 import Contato from "./pages/Contato";
 import MeuPlano from "./pages/MeuPlano";
 import LeiloeirosPagina from "./pages/LeiloeirosPagina";
+import Ajuda from "./pages/Ajuda";
+import Termos from "./pages/Termos";
+import Privacidade from "./pages/Privacidade";
+import Recursos from "./pages/Recursos";
 
 const queryClient = new QueryClient();
 
@@ -57,6 +61,10 @@ const App = () => (
             <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/sobre" element={<Sobre />} />
+            <Route path="/ajuda" element={<Ajuda />} />
+            <Route path="/termos" element={<Termos />} />
+            <Route path="/privacidade" element={<Privacidade />} />
+            <Route path="/recursos" element={<Recursos />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
