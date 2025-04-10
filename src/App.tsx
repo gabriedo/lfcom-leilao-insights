@@ -26,6 +26,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Assessoria from "./pages/Assessoria";
 import Contato from "./pages/Contato";
 import MeuPlano from "./pages/MeuPlano";
+import LeiloeirosPagina from "./pages/LeiloeirosPagina";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
             <Route path="/assessoria" element={<Assessoria />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/precos" element={<Precos />} />
+            <Route path="/leiloeiros" element={<LeiloeirosPagina />} />
             <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/sobre" element={<Sobre />} />
