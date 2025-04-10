@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 
 const Assessoria = () => {
   return (
-    <Layout>
+    <Layout removeHeaderSpace={true}>
       <div className="bg-black text-white">
         {/* Hero Section with Black Header */}
         <section className="relative overflow-hidden py-20 md:py-32 bg-black border-b border-gray-800">
@@ -17,10 +17,14 @@ const Assessoria = () => {
           
           <div className="container relative z-10 mx-auto px-4">
             <div className="mx-auto max-w-4xl text-center">
-              <h1 className="mb-6 text-3xl font-bold tracking-tight text-white md:text-5xl lg:text-6xl">
-                <span className="text-white">
+              <h1 className="mb-6 text-3xl font-bold tracking-tight md:text-5xl lg:text-6xl">
+                <span className="bg-gradient-to-r from-white via-gray-300 to-white bg-clip-text text-transparent drop-shadow-[0_1.2px_1.2px_rgba(255,255,255,0.5)]">
                   Assessoria Especializada
-                </span> para Investimentos em Leilões
+                </span>
+                <br className="hidden md:block" />
+                <span className="text-white mt-2 inline-block">
+                  para Investimentos em Leilões
+                </span>
               </h1>
               
               <p className="mb-10 text-lg text-gray-300 md:text-xl">
