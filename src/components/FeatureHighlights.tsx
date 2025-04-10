@@ -21,7 +21,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function FeatureHighlights() {
   const [activeFeature, setActiveFeature] = useState<string | null>(null);
@@ -146,24 +151,26 @@ export default function FeatureHighlights() {
                     <div className="mb-4">{feature.icon}</div>
                     <CardTitle className="flex items-start justify-between">
                       {feature.title}
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-7 w-7 rounded-full" 
-                            onClick={() => handleFeatureClick(feature.id)}
-                          >
-                            <ArrowRight className={`h-4 w-4 transition-transform ${
-                              activeFeature === feature.id ? 'rotate-90' : ''
-                            }`} />
-                            <span className="sr-only">Detalhes</span>
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Ver mais detalhes</p>
-                        </TooltipContent>
-                      </Tooltip>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-7 w-7 rounded-full" 
+                              onClick={() => handleFeatureClick(feature.id)}
+                            >
+                              <ArrowRight className={`h-4 w-4 transition-transform ${
+                                activeFeature === feature.id ? 'rotate-90' : ''
+                              }`} />
+                              <span className="sr-only">Detalhes</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Ver mais detalhes</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
