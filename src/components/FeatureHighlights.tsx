@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Check, FileText, Search, Gauge, AlertTriangle, BarChart, ArrowRight } from "lucide-react";
+import { Check, FileText, Search, Gauge, AlertTriangle, BarChart, ArrowRight, Activity, Shield } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -90,17 +90,17 @@ export default function FeatureHighlights() {
     },
     {
       id: "riscos",
-      title: "Análise de Riscos",
-      description: "Identificação de fatores de risco legais, físicos e financeiros do imóvel.",
-      icon: <AlertTriangle className="h-10 w-10 text-lfcom-black" />,
+      title: "RiskPulse™",
+      description: "Ferramenta avançada de análise de riscos com inteligência artificial.",
+      icon: <Activity className="h-10 w-10 text-lfcom-black" />,
       details: [
-        "Verificação de pendências legais que podem afetar a transferência do imóvel",
-        "Análise de riscos ambientais e estruturais da propriedade",
-        "Avaliação de possíveis problemas com a ocupação do imóvel",
-        "Identificação de dívidas condominiais e tributárias pendentes",
-        "Matriz de riscos com probabilidade e impacto de cada fator",
+        "Análise preditiva de fatores de risco com machine learning",
+        "Avaliação multidimensional de impactos potenciais",
+        "Detector de anomalias para identificar problemas ocultos",
+        "Score de risco com classificação objetiva",
+        "Recomendações automatizadas para mitigação de riscos",
       ],
-      expandedDescription: "Investir em imóveis de leilão envolve riscos específicos que precisam ser identificados e avaliados adequadamente. Nossa análise utiliza uma metodologia exclusiva para mapear todos os potenciais problemas, desde questões jurídicas até características físicas do imóvel, apresentando uma avaliação clara dos riscos envolvidos e as estratégias para mitigá-los."
+      expandedDescription: "Nossa tecnologia proprietária RiskPulse™ utiliza algoritmos avançados de inteligência artificial para mapear todos os potenciais problemas, analisando dados históricos e fazendo previsões precisas sobre riscos futuros. O sistema avalia mais de 200 variáveis diferentes para gerar um índice de risco objetivo e comparável entre diferentes oportunidades de investimento."
     },
     {
       id: "relatorio",
@@ -132,26 +132,26 @@ export default function FeatureHighlights() {
           </p>
         </div>
 
-        <Tabs defaultValue="cards" className="w-full mb-12">
-          <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
-            <TabsTrigger value="cards">Visão Geral</TabsTrigger>
-            <TabsTrigger value="detailed">Detalhado</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="cards" className="mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {features.map((feature) => (
-                <Card 
-                  key={feature.id} 
-                  className={`lfcom-card border border-lfcom-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg ${
-                    activeFeature === feature.id ? 'ring-2 ring-lfcom-black' : ''
-                  }`}
-                >
-                  <CardHeader className="pb-2">
-                    <div className="mb-4">{feature.icon}</div>
-                    <CardTitle className="flex items-start justify-between">
-                      {feature.title}
-                      <TooltipProvider>
+        <TooltipProvider>
+          <Tabs defaultValue="cards" className="w-full mb-12">
+            <TabsList className="grid w-full max-w-md mx-auto grid-cols-2">
+              <TabsTrigger value="cards">Visão Geral</TabsTrigger>
+              <TabsTrigger value="detailed">Detalhado</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="cards" className="mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {features.map((feature) => (
+                  <Card 
+                    key={feature.id} 
+                    className={`lfcom-card border border-lfcom-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg ${
+                      activeFeature === feature.id ? 'ring-2 ring-lfcom-black' : ''
+                    }`}
+                  >
+                    <CardHeader className="pb-2">
+                      <div className="mb-4">{feature.icon}</div>
+                      <CardTitle className="flex items-start justify-between">
+                        {feature.title}
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button 
@@ -170,104 +170,115 @@ export default function FeatureHighlights() {
                             <p>Ver mais detalhes</p>
                           </TooltipContent>
                         </Tooltip>
-                      </TooltipProvider>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-lfcom-gray-600 text-sm">
-                      {feature.description}
-                    </CardDescription>
-                    
-                    <Collapsible
-                      open={activeFeature === feature.id}
-                      className="mt-4"
-                    >
-                      <CollapsibleContent className="space-y-4">
-                        <p className="text-sm text-lfcom-gray-700">{feature.expandedDescription}</p>
-                        <ul className="space-y-2">
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <CardDescription className="text-lfcom-gray-600 text-sm">
+                        {feature.description}
+                      </CardDescription>
+                      
+                      <Collapsible
+                        open={activeFeature === feature.id}
+                        className="mt-4"
+                      >
+                        <CollapsibleContent className="space-y-4">
+                          <p className="text-sm text-lfcom-gray-700">{feature.expandedDescription}</p>
+                          <ul className="space-y-2">
+                            {feature.details.map((item, idx) => (
+                              <li key={idx} className="flex items-start text-sm">
+                                <Check className="h-4 w-4 mr-2 text-green-600 mt-0.5 flex-shrink-0" />
+                                <span>{item}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </CardContent>
+                    <CardFooter className="pt-0 pb-4">
+                      <Button 
+                        variant="ghost" 
+                        className="w-full justify-start text-lfcom-black hover:bg-lfcom-gray-100 p-0"
+                        onClick={() => handleFeatureClick(feature.id)}
+                      >
+                        {activeFeature === feature.id ? 'Ver menos' : 'Saiba mais'}
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="detailed" className="mt-6 bg-lfcom-gray-50 p-6 rounded-lg">
+              <Accordion type="single" collapsible className="w-full">
+                {features.map((feature) => (
+                  <AccordionItem key={feature.id} value={feature.id}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center">
+                        <div className="bg-white p-2 rounded-md mr-3">
+                          {feature.icon}
+                        </div>
+                        <div className="text-left">
+                          <h3 className="text-xl font-semibold">{feature.title}</h3>
+                          <p className="text-sm text-lfcom-gray-600">{feature.description}</p>
+                        </div>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="bg-white p-4 rounded-lg mt-2">
+                      <div className="mb-4">
+                        <p className="text-lfcom-gray-800">{feature.expandedDescription}</p>
+                      </div>
+                      <div className="bg-lfcom-gray-50 p-4 rounded-lg">
+                        <h4 className="font-semibold mb-3">O que incluímos na análise:</h4>
+                        <ul className="space-y-3">
                           {feature.details.map((item, idx) => (
-                            <li key={idx} className="flex items-start text-sm">
-                              <Check className="h-4 w-4 mr-2 text-green-600 mt-0.5 flex-shrink-0" />
+                            <li key={idx} className="flex items-start">
+                              <Check className="h-5 w-5 mr-2 text-green-600 mt-0.5 flex-shrink-0" />
                               <span>{item}</span>
                             </li>
                           ))}
                         </ul>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </CardContent>
-                  <CardFooter className="pt-0 pb-4">
-                    <Button 
-                      variant="ghost" 
-                      className="w-full justify-start text-lfcom-black hover:bg-lfcom-gray-100 p-0"
-                      onClick={() => handleFeatureClick(feature.id)}
-                    >
-                      {activeFeature === feature.id ? 'Ver menos' : 'Saiba mais'}
-                      <ArrowRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="detailed" className="mt-6 bg-lfcom-gray-50 p-6 rounded-lg">
-            <Accordion type="single" collapsible className="w-full">
-              {features.map((feature) => (
-                <AccordionItem key={feature.id} value={feature.id}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center">
-                      <div className="bg-white p-2 rounded-md mr-3">
-                        {feature.icon}
                       </div>
-                      <div className="text-left">
-                        <h3 className="text-xl font-semibold">{feature.title}</h3>
-                        <p className="text-sm text-lfcom-gray-600">{feature.description}</p>
-                      </div>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent className="bg-white p-4 rounded-lg mt-2">
-                    <div className="mb-4">
-                      <p className="text-lfcom-gray-800">{feature.expandedDescription}</p>
-                    </div>
-                    <div className="bg-lfcom-gray-50 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3">O que incluímos na análise:</h4>
-                      <ul className="space-y-3">
-                        {feature.details.map((item, idx) => (
-                          <li key={idx} className="flex items-start">
-                            <Check className="h-5 w-5 mr-2 text-green-600 mt-0.5 flex-shrink-0" />
-                            <span>{item}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          </TabsContent>
-        </Tabs>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </TabsContent>
+          </Tabs>
+        </TooltipProvider>
         
         <div className="mt-16 text-center">
-          <div className="max-w-3xl mx-auto bg-gradient-to-r from-lfcom-gray-900 to-lfcom-black text-white rounded-xl p-8 shadow-xl">
-            <h3 className="text-2xl font-bold mb-4">Pronto para tomar decisões embasadas em dados concretos?</h3>
-            <p className="text-lfcom-gray-300 mb-6">
-              Não arrisque seu investimento baseado em palpites. Nossa análise profissional identifica oportunidades e riscos que podem passar despercebidos.
-            </p>
-            <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Button 
-                className="bg-white text-lfcom-black hover:bg-lfcom-gray-200 h-12 px-8 rounded-md group"
-              >
-                <Link to="/nova-analise" className="flex items-center">
-                  Solicitar Análise Completa
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
-                </Link>
-              </Button>
-              <Button 
-                variant="outline" 
-                className="border-white text-white hover:bg-white/10 h-12 px-8 rounded-md"
-              >
-                <Link to="/como-funciona">Conhecer Metodologia</Link>
-              </Button>
+          <div className="max-w-3xl mx-auto bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl p-8 shadow-xl relative overflow-hidden">
+            {/* Animated background elements */}
+            <div className="absolute top-0 left-0 w-full h-full">
+              <div className="absolute top-10 left-10 w-40 h-40 rounded-full bg-blue-600/10 blur-2xl"></div>
+              <div className="absolute bottom-10 right-10 w-60 h-60 rounded-full bg-indigo-500/10 blur-3xl"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full bg-purple-500/20 blur-2xl"></div>
+            </div>
+            
+            <div className="relative z-10">
+              <h3 className="text-2xl font-bold mb-4 flex items-center justify-center">
+                <Shield className="w-6 h-6 mr-2" /> Pronto para tomar decisões embasadas em dados concretos?
+              </h3>
+              <p className="text-blue-100 mb-6">
+                Não arrisque seu investimento baseado em palpites. Nossa análise profissional identifica oportunidades e riscos que podem passar despercebidos.
+              </p>
+              <div className="flex flex-col sm:flex-row justify-center gap-4">
+                <Button 
+                  className="bg-white text-indigo-900 hover:bg-blue-50 h-12 px-8 rounded-md group"
+                >
+                  <Link to="/nova-analise" className="flex items-center">
+                    Solicitar Análise Completa
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-white text-white hover:bg-white/10 h-12 px-8 rounded-md"
+                >
+                  <Link to="/conhecer-metodologia">Conhecer Metodologia</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>

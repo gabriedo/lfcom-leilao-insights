@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,12 @@ import {
   Search,
   Shield,
   TrendingUp, 
+  Zap,
+  AlertTriangle,
+  Gauge,
+  LineChart,
+  Activity,
+  Brain,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -84,7 +89,7 @@ const ConhecerMetodologia = () => {
                 { id: "visao-geral", label: "Visão Geral" },
                 { id: "coleta-dados", label: "Coleta de Dados" },
                 { id: "analise-mercado", label: "Análise de Mercado" },
-                { id: "risco-juridico", label: "Risco Jurídico" },
+                { id: "risco-juridico", label: "Risk Assessment" },
                 { id: "relatorio", label: "Relatório Final" }
               ].map((item) => (
                 <a
@@ -416,7 +421,7 @@ const ConhecerMetodologia = () => {
           </motion.div>
         </section>
 
-        {/* Section: Risco Jurídico */}
+        {/* Section: Risk Assessment */}
         <section 
           id="risco-juridico" 
           className="mb-20 py-10 scroll-mt-32"
@@ -430,35 +435,133 @@ const ConhecerMetodologia = () => {
             variants={containerVariants}
           >
             <motion.div variants={itemVariants}>
-              <h2 className="text-3xl font-bold mb-2">Avaliação de Riscos Jurídicos</h2>
-              <div className="w-20 h-1 bg-lfcom-black mb-8"></div>
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="relative">
+                  <motion.div
+                    className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center"
+                    animate={{ 
+                      boxShadow: ["0 0 0 rgba(66, 153, 225, 0.5)", "0 0 20px rgba(66, 153, 225, 0.8)", "0 0 0 rgba(66, 153, 225, 0.5)"] 
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "loop"
+                    }}
+                  >
+                    <Activity className="w-6 h-6 text-white" />
+                  </motion.div>
+                  <motion.div 
+                    className="absolute -inset-1 rounded-full"
+                    animate={{ 
+                      scale: [1, 1.1, 1],
+                      opacity: [0.3, 0.5, 0.3],
+                    }}
+                    transition={{ 
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "loop"
+                    }}
+                    style={{ 
+                      background: "linear-gradient(90deg, rgba(79, 70, 229, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%)" 
+                    }}
+                  />
+                </div>
+                <h2 className="text-3xl font-bold mb-0">RiskPulse™</h2>
+              </div>
+              <div className="w-20 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mb-8"></div>
               <p className="text-lfcom-gray-600 text-lg mb-12">
-                Nossa equipe jurídica analisa minuciosamente toda a documentação para identificar riscos potenciais associados à aquisição do imóvel em leilão.
+                Nossa plataforma proprietária de análise de riscos que utiliza inteligência artificial e machine learning para identificar, avaliar e quantificar todos os fatores de risco associados ao seu investimento imobiliário.
               </p>
             </motion.div>
 
             <motion.div variants={containerVariants} className="mb-12">
-              <div className="relative overflow-hidden bg-lfcom-gray-900 text-white rounded-xl p-8">
+              <div className="relative overflow-hidden bg-gradient-to-r from-blue-900 to-indigo-900 text-white rounded-xl p-8">
                 <div className="relative z-10">
-                  <Scale className="w-12 h-12 mb-4" />
-                  <h3 className="text-2xl font-bold mb-4">
-                    Escala de Risco Jurídico
-                  </h3>
-                  <p className="mb-6 text-lfcom-gray-300">
-                    Classificamos cada propriedade em uma escala de risco jurídico de 5 níveis, de "Muito Baixo" a "Muito Alto", para facilitar a tomada de decisão.
+                  <div className="flex items-center mb-6">
+                    <motion.div
+                      className="mr-4 p-2 bg-white/10 rounded-lg backdrop-blur-sm"
+                      animate={{ 
+                        y: [0, -5, 0],
+                      }}
+                      transition={{ 
+                        duration: 2,
+                        repeat: Infinity,
+                        repeatType: "loop"
+                      }}
+                    >
+                      <Gauge className="w-10 h-10" />
+                    </motion.div>
+                    <h3 className="text-2xl font-bold">
+                      Índice de Risco RiskPulse™
+                    </h3>
+                  </div>
+                  <p className="mb-6 text-blue-100">
+                    Nossa tecnologia exclusiva analisa mais de 200 variáveis para gerar um índice preciso do nível de risco do investimento, permitindo comparações objetivas entre diferentes oportunidades.
                   </p>
                   
+                  <div className="relative h-12 mb-6 bg-white/10 rounded-full overflow-hidden">
+                    <motion.div 
+                      className="absolute top-0 left-0 h-full rounded-full flex items-center px-4"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "85%" }}
+                      transition={{ 
+                        duration: 1.5,
+                        delay: 0.5,
+                      }}
+                      style={{
+                        background: "linear-gradient(90deg, rgba(52, 211, 153, 1) 0%, rgba(249, 215, 28, 1) 50%, rgba(239, 68, 68, 1) 100%)"
+                      }}
+                    >
+                      <motion.div 
+                        className="w-5 h-5 bg-white rounded-full absolute"
+                        initial={{ left: "85%" }}
+                        animate={{ 
+                          left: ["85%", "83%", "87%", "85%"],
+                          boxShadow: ["0 0 0px rgba(255,255,255,0.8)", "0 0 10px rgba(255,255,255,0.8)", "0 0 0px rgba(255,255,255,0.8)"],
+                        }}
+                        transition={{ 
+                          duration: 3,
+                          repeat: Infinity,
+                          repeatType: "loop"
+                        }}
+                      />
+                    </motion.div>
+                  </div>
+                  
                   <div className="grid grid-cols-5 gap-2 text-sm text-center">
-                    <div className="bg-green-500 py-2 px-1 rounded">Muito Baixo</div>
-                    <div className="bg-green-300 py-2 px-1 rounded">Baixo</div>
-                    <div className="bg-yellow-400 py-2 px-1 rounded">Médio</div>
-                    <div className="bg-orange-500 py-2 px-1 rounded">Alto</div>
-                    <div className="bg-red-500 py-2 px-1 rounded">Muito Alto</div>
+                    <div className="bg-green-500 py-2 px-1 rounded font-medium">Muito Baixo</div>
+                    <div className="bg-green-400 py-2 px-1 rounded font-medium">Baixo</div>
+                    <div className="bg-yellow-400 py-2 px-1 rounded font-medium">Médio</div>
+                    <div className="bg-orange-500 py-2 px-1 rounded font-medium">Alto</div>
+                    <div className="bg-red-500 py-2 px-1 rounded font-medium">Muito Alto</div>
                   </div>
                 </div>
                 
-                {/* Abstract pattern background */}
-                <div className="absolute top-0 right-0 w-1/2 h-full opacity-10">
+                <motion.div 
+                  className="absolute top-1/4 right-10 w-20 h-20 rounded-full bg-blue-500/10 backdrop-blur-sm"
+                  animate={{ 
+                    scale: [1, 1.2, 1],
+                    opacity: [0.5, 0.8, 0.5]
+                  }}
+                  transition={{ 
+                    duration: 4,
+                    repeat: Infinity,
+                    repeatType: "loop"
+                  }}
+                />
+                <motion.div 
+                  className="absolute bottom-10 left-1/4 w-32 h-32 rounded-full bg-purple-500/10 backdrop-blur-sm"
+                  animate={{ 
+                    scale: [1, 1.3, 1],
+                    opacity: [0.3, 0.6, 0.3]
+                  }}
+                  transition={{ 
+                    duration: 6,
+                    repeat: Infinity,
+                    repeatType: "loop"
+                  }}
+                />
+                <div className="absolute top-0 right-0 w-full h-full opacity-10">
                   <svg width="100%" height="100%" viewBox="0 0 100 100">
                     <pattern id="pattern-circles" width="10" height="10" patternUnits="userSpaceOnUse">
                       <circle cx="2" cy="2" r="1" fill="white" />
@@ -469,78 +572,147 @@ const ConhecerMetodologia = () => {
               </div>
             </motion.div>
 
-            <motion.div variants={containerVariants} className="space-y-6">
+            <motion.div variants={containerVariants} className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
               <motion.div 
-                className="p-6 bg-white rounded-lg border border-lfcom-gray-200 shadow-sm"
+                className="bg-white rounded-xl p-6 border border-indigo-100 shadow-lg shadow-indigo-100/20 relative overflow-hidden"
                 variants={itemVariants}
               >
-                <h3 className="flex items-center text-xl font-bold mb-4">
-                  <Layers className="w-6 h-6 mr-2" />
-                  Camadas da Análise Jurídica
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h4 className="font-semibold mb-2">Análise Documental</h4>
-                    <ul className="space-y-2 text-lfcom-gray-600">
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Verificação de matrícula e registro</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Análise de escrituras e contratos</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Verificação de ônus e gravames</span>
-                      </li>
-                    </ul>
+                <div className="absolute -right-12 -top-12 w-32 h-32 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full blur-xl opacity-50"></div>
+                <div className="relative z-10">
+                  <div className="p-3 bg-blue-50 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                    <Brain className="w-8 h-8 text-blue-600" />
                   </div>
-                  <div>
-                    <h4 className="font-semibold mb-2">Pesquisa Jurídica</h4>
-                    <ul className="space-y-2 text-lfcom-gray-600">
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Busca de ações judiciais relacionadas</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Verificação de débitos e pendências</span>
-                      </li>
-                      <li className="flex items-start">
-                        <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                        <span>Análise de jurisprudência aplicável</span>
-                      </li>
-                    </ul>
-                  </div>
+                  <h3 className="text-xl font-bold mb-4">IA Preditiva</h3>
+                  <p className="text-lfcom-gray-600 mb-4">
+                    Nosso algoritmo de inteligência artificial analisa milhares de casos anteriores para identificar padrões e prever potenciais riscos futuros.
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-lfcom-gray-600">Aprendizado contínuo com novos dados</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-lfcom-gray-600">Identificação de correlações não óbvias</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-lfcom-gray-600">Acurácia superior a 95% em previsões</span>
+                    </li>
+                  </ul>
                 </div>
               </motion.div>
               
               <motion.div 
-                className="p-6 bg-white rounded-lg border border-lfcom-gray-200 shadow-sm"
+                className="bg-white rounded-xl p-6 border border-indigo-100 shadow-lg shadow-indigo-100/20 relative overflow-hidden"
                 variants={itemVariants}
               >
-                <h3 className="flex items-center text-xl font-bold mb-4">
-                  <Shield className="w-6 h-6 mr-2" />
-                  Riscos Específicos Analisados
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                  {[
-                    "Possibilidade de evicção",
-                    "Reivindicações de terceiros",
-                    "Irregularidades na documentação",
-                    "Problemas no processo de execução",
-                    "Débitos não contemplados na arrematação",
-                    "Questões ambientais",
-                    "Restrições urbanísticas",
-                    "Riscos de ocupação irregular"
-                  ].map((risk, index) => (
-                    <div key={index} className="flex items-start">
+                <div className="absolute -left-12 -bottom-12 w-32 h-32 bg-gradient-to-tr from-purple-100 to-blue-100 rounded-full blur-xl opacity-50"></div>
+                <div className="relative z-10">
+                  <div className="p-3 bg-purple-50 w-16 h-16 rounded-xl flex items-center justify-center mb-6">
+                    <LineChart className="w-8 h-8 text-purple-600" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-4">Análise Multidimensional</h3>
+                  <p className="text-lfcom-gray-600 mb-4">
+                    Avaliamos riscos em diferentes dimensões para uma compreensão completa do cenário de investimento.
+                  </p>
+                  <ul className="space-y-2">
+                    <li className="flex items-start">
                       <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
-                      <span className="text-lfcom-gray-600">{risk}</span>
-                    </div>
-                  ))}
+                      <span className="text-lfcom-gray-600">Riscos documentais e contratuais</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-lfcom-gray-600">Condições do mercado e liquidez</span>
+                    </li>
+                    <li className="flex items-start">
+                      <CheckCircle className="w-5 h-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <span className="text-lfcom-gray-600">Aspectos técnicos e estruturais</span>
+                    </li>
+                  </ul>
                 </div>
+              </motion.div>
+            </motion.div>
+
+            <motion.div 
+              className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-8 border border-blue-100"
+              variants={containerVariants}
+            >
+              <motion.h3 
+                className="flex items-center text-2xl font-bold mb-6"
+                variants={itemVariants}
+              >
+                <Shield className="w-8 h-8 text-blue-600 mr-3" />
+                Módulos do RiskPulse™
+              </motion.h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
+                {[
+                  {
+                    icon: <AlertTriangle className="w-6 h-6 text-amber-500" />,
+                    title: "Detector de Anomalias",
+                    description: "Identifica padrões incomuns nos documentos e histórico do imóvel que podem representar riscos ocultos."
+                  },
+                  {
+                    icon: <FileText className="w-6 h-6 text-blue-500" />,
+                    title: "Análise Documental",
+                    description: "Avaliação completa de toda documentação com extração automática de informações relevantes."
+                  },
+                  {
+                    icon: <TrendingUp className="w-6 h-6 text-green-500" />,
+                    title: "Previsão de Contingências",
+                    description: "Estima a probabilidade e impacto financeiro de possíveis complicações futuras."
+                  },
+                  {
+                    icon: <Zap className="w-6 h-6 text-purple-500" />,
+                    title: "Recomendações Automatizadas",
+                    description: "Sugestões personalizadas para mitigar os riscos identificados, com estimativa de custos."
+                  }
+                ].map((module, index) => (
+                  <motion.div 
+                    key={index} 
+                    className="flex items-start"
+                    variants={itemVariants}
+                  >
+                    <div className="p-2 bg-white rounded-lg mr-4 shadow-md">
+                      {module.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-lg mb-1">{module.title}</h4>
+                      <p className="text-lfcom-gray-600 text-sm">{module.description}</p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+              
+              <motion.div 
+                className="mt-8 p-4 bg-blue-900/10 rounded-lg border border-blue-200"
+                variants={itemVariants}
+              >
+                <div className="flex items-center">
+                  <motion.div 
+                    className="p-2 bg-blue-600 rounded-md mr-3"
+                    animate={{
+                      scale: [1, 1.05, 1],
+                      boxShadow: [
+                        "0 0 0 rgba(37, 99, 235, 0.4)",
+                        "0 0 8px rgba(37, 99, 235, 0.6)",
+                        "0 0 0 rgba(37, 99, 235, 0.4)"
+                      ]
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      repeatType: "loop"
+                    }}
+                  >
+                    <Activity className="w-5 h-5 text-white" />
+                  </motion.div>
+                  <h5 className="font-semibold">Tecnologia em constante evolução</h5>
+                </div>
+                <p className="text-lfcom-gray-700 mt-2 text-sm">
+                  Nossa plataforma é atualizada semanalmente com novos dados e melhorias nos algoritmos, garantindo análises cada vez mais precisas e abrangentes.
+                </p>
               </motion.div>
             </motion.div>
           </motion.div>
