@@ -1,9 +1,15 @@
-
 import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import PropertyCard from "@/components/PropertyCard";
 import PropertyFilters from "@/components/PropertyFilters";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
@@ -26,7 +32,11 @@ interface Property {
   imageUrl: string;
   images?: string[];
   propertyType: string; // type
-  modality: "Leilão SFI" | "Licitação Aberta" | "Venda Online" | "Venda Direta Online";
+  modality:
+    | "Leilão SFI"
+    | "Licitação Aberta"
+    | "Venda Online"
+    | "Venda Direta Online";
   fim_1?: string; // Data do 1º leilão (SFI)
   fim_2?: string; // Data do 2º leilão (SFI)
   fim_venda_online?: string; // Data fim venda online/licitação
@@ -62,7 +72,11 @@ export const mockProperties: Property[] = [
     bathrooms: 1,
     parking: 1,
     imageUrl: "https://picsum.photos/400/300",
-    images: ["https://picsum.photos/400/300", "https://picsum.photos/400/301", "https://picsum.photos/400/302"],
+    images: [
+      "https://picsum.photos/400/300",
+      "https://picsum.photos/400/301",
+      "https://picsum.photos/400/302",
+    ],
     propertyType: "Apartamento",
     modality: "Leilão SFI",
     fim_1: "2025-05-15",
@@ -77,7 +91,7 @@ export const mockProperties: Property[] = [
     registryUrl: "https://example.com/matricula",
     propertyRegistration: "000.000.0001.0001.0001",
     editalNumber: "0001/2025",
-    editalUrl: "https://example.com/edital"
+    editalUrl: "https://example.com/edital",
   },
   {
     id: "2",
@@ -95,14 +109,18 @@ export const mockProperties: Property[] = [
     bathrooms: 2,
     parking: 2,
     imageUrl: "https://picsum.photos/400/302",
-    images: ["https://picsum.photos/400/302", "https://picsum.photos/400/303", "https://picsum.photos/400/304"],
+    images: [
+      "https://picsum.photos/400/302",
+      "https://picsum.photos/400/303",
+      "https://picsum.photos/400/304",
+    ],
     propertyType: "Casa",
     modality: "Venda Direta Online",
     acceptsFinancing: true,
     acceptsFGTS: true,
     acceptsInstallments: true,
     acceptsConsortium: true,
-    description: "Casa ampla com quintal em bairro residencial"
+    description: "Casa ampla com quintal em bairro residencial",
   },
   {
     id: "3",
@@ -120,7 +138,11 @@ export const mockProperties: Property[] = [
     bathrooms: 1,
     parking: 1,
     imageUrl: "https://picsum.photos/400/301",
-    images: ["https://picsum.photos/400/301", "https://picsum.photos/400/305", "https://picsum.photos/400/306"],
+    images: [
+      "https://picsum.photos/400/301",
+      "https://picsum.photos/400/305",
+      "https://picsum.photos/400/306",
+    ],
     propertyType: "Apartamento",
     modality: "Licitação Aberta",
     fim_venda_online: "2025-06-15",
@@ -129,7 +151,7 @@ export const mockProperties: Property[] = [
     acceptsInstallments: true,
     acceptsConsortium: false,
     editalNumber: "0002/2025",
-    editalUrl: "https://example.com/edital2"
+    editalUrl: "https://example.com/edital2",
   },
   {
     id: "4",
@@ -147,7 +169,11 @@ export const mockProperties: Property[] = [
     bathrooms: 2,
     parking: 2,
     imageUrl: "https://picsum.photos/400/303",
-    images: ["https://picsum.photos/400/303", "https://picsum.photos/400/307", "https://picsum.photos/400/308"],
+    images: [
+      "https://picsum.photos/400/303",
+      "https://picsum.photos/400/307",
+      "https://picsum.photos/400/308",
+    ],
     propertyType: "Casa",
     modality: "Venda Online",
     fim_venda_online: "2025-05-20",
@@ -156,7 +182,7 @@ export const mockProperties: Property[] = [
     acceptsInstallments: false,
     acceptsConsortium: false,
     description: "Casa espaçosa em condomínio fechado",
-    observations: "Necessita de pequenas reformas"
+    observations: "Necessita de pequenas reformas",
   },
   {
     id: "5",
@@ -173,7 +199,11 @@ export const mockProperties: Property[] = [
     bathrooms: 1,
     parking: 1,
     imageUrl: "https://picsum.photos/400/304",
-    images: ["https://picsum.photos/400/304", "https://picsum.photos/400/309", "https://picsum.photos/400/310"],
+    images: [
+      "https://picsum.photos/400/304",
+      "https://picsum.photos/400/309",
+      "https://picsum.photos/400/310",
+    ],
     propertyType: "Apartamento",
     modality: "Leilão SFI",
     fim_1: "2025-06-10",
@@ -182,7 +212,7 @@ export const mockProperties: Property[] = [
     acceptsFGTS: true,
     description: "Apartamento em excelente localização no centro de Campinas",
     editalNumber: "0003/2025",
-    editalUrl: "https://example.com/edital3"
+    editalUrl: "https://example.com/edital3",
   },
   {
     id: "6",
@@ -208,8 +238,8 @@ export const mockProperties: Property[] = [
     description: "Terreno plano em área de expansão urbana",
     registryNumber: "789012",
     registryUrl: "https://example.com/matricula3",
-    propertyRegistration: "000.000.0003.0001.0001"
-  }
+    propertyRegistration: "000.000.0003.0001.0001",
+  },
 ];
 
 // Enhanced filter interface
@@ -230,74 +260,112 @@ interface PropertyFilters {
 }
 
 // Function to fetch properties (simulação de API)
-const fetchProperties = async (filters: PropertyFilters): Promise<Property[]> => {
+const fetchProperties = async (
+  filters: PropertyFilters
+): Promise<Property[]> => {
   // Simulando um delay de rede
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
-  let filteredProperties = [...mockProperties];
-  
+  await new Promise((resolve) => setTimeout(resolve, 500));
+  var myHeaders = new Headers();
+  myHeaders.append(
+    "X-Api-Key",
+    "gAAAAABn3ODQd_A82IRyOyKE_AwEAXITB6TY4Q0lxFVkiG_DxA0Ochmod4g-0jcReIuh2X7DaZLBJ5TbZIpZTxvsXRWuinq_NFxnf3chEWUZiaFPRFfhONMnIB2mtkV3cgDq2TlODXez"
+  );
+
+  var requestOptions = {
+    method: "GET",
+    headers: myHeaders,
+    redirect: "follow",
+  };
+
+  let response = await fetch(
+    "https://scraphub.comercify.shop/api/items/2/?page=1",
+    requestOptions
+  );
+  response = await response.json();
+  let filteredProperties = response.results;
   // Aplicar filtros
   if (filters.city && filters.city !== "all-cities") {
-    filteredProperties = filteredProperties.filter(prop => prop.city === filters.city);
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.city === filters.city
+    );
   }
-  
+
   if (filters.state && filters.state !== "all-states") {
-    filteredProperties = filteredProperties.filter(prop => prop.state === filters.state);
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.state === filters.state
+    );
   }
-  
+
   if (filters.propertyType && filters.propertyType !== "all-types") {
-    filteredProperties = filteredProperties.filter(prop => prop.propertyType === filters.propertyType);
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.propertyType === filters.propertyType
+    );
   }
-  
+
   if (filters.modality && filters.modality !== "all-modalities") {
-    filteredProperties = filteredProperties.filter(prop => prop.modality === filters.modality);
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.modality === filters.modality
+    );
   }
-  
+
   if (filters.priceMin > 0 || filters.priceMax < 1000000) {
     filteredProperties = filteredProperties.filter(
-      prop => prop.price >= filters.priceMin && prop.price <= filters.priceMax
+      (prop) => prop.price >= filters.priceMin && prop.price <= filters.priceMax
     );
   }
-  
+
   if (filters.bedrooms > 0) {
-    filteredProperties = filteredProperties.filter(prop => prop.bedrooms >= filters.bedrooms);
-  }
-  
-  if (filters.parking > 0) {
-    filteredProperties = filteredProperties.filter(prop => prop.parking >= filters.parking);
-  }
-  
-  if (filters.acceptsFinancing !== null) {
-    filteredProperties = filteredProperties.filter(prop => prop.acceptsFinancing === filters.acceptsFinancing);
-  }
-  
-  if (filters.acceptsFGTS !== null) {
-    filteredProperties = filteredProperties.filter(prop => prop.acceptsFGTS === filters.acceptsFGTS);
-  }
-  
-  if (filters.minDiscount > 0) {
-    filteredProperties = filteredProperties.filter(prop => 
-      prop.discount !== undefined && prop.discount >= filters.minDiscount
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.bedrooms >= filters.bedrooms
     );
   }
-  
-  if (filters.areaMin > 0) {
-    filteredProperties = filteredProperties.filter(prop => prop.area >= filters.areaMin);
+
+  if (filters.parking > 0) {
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.parking >= filters.parking
+    );
   }
-  
+
+  if (filters.acceptsFinancing !== null) {
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.acceptsFinancing === filters.acceptsFinancing
+    );
+  }
+
+  if (filters.acceptsFGTS !== null) {
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.acceptsFGTS === filters.acceptsFGTS
+    );
+  }
+
+  if (filters.minDiscount > 0) {
+    filteredProperties = filteredProperties.filter(
+      (prop) =>
+        prop.discount !== undefined && prop.discount >= filters.minDiscount
+    );
+  }
+
+  if (filters.areaMin > 0) {
+    filteredProperties = filteredProperties.filter(
+      (prop) => prop.area >= filters.areaMin
+    );
+  }
+
   // Sort properties
   if (filters.sortBy) {
     switch (filters.sortBy) {
-      case 'price-asc':
+      case "price-asc":
         filteredProperties.sort((a, b) => a.price - b.price);
         break;
-      case 'price-desc':
+      case "price-desc":
         filteredProperties.sort((a, b) => b.price - a.price);
         break;
-      case 'discount-desc':
-        filteredProperties.sort((a, b) => (b.discount || 0) - (a.discount || 0));
+      case "discount-desc":
+        filteredProperties.sort(
+          (a, b) => (b.discount || 0) - (a.discount || 0)
+        );
         break;
-      case 'end-date-asc':
+      case "end-date-asc":
         filteredProperties.sort((a, b) => {
           const dateA = getEndDate(a);
           const dateB = getEndDate(b);
@@ -310,7 +378,7 @@ const fetchProperties = async (filters: PropertyFilters): Promise<Property[]> =>
         break;
     }
   }
-  
+
   return filteredProperties;
 };
 
@@ -318,8 +386,10 @@ const fetchProperties = async (filters: PropertyFilters): Promise<Property[]> =>
 const getEndDate = (property: Property): string | undefined => {
   if (property.modality === "Leilão SFI") {
     return property.fim_2 || property.fim_1;
-  } else if (property.modality === "Licitação Aberta" || 
-           property.modality === "Venda Online") {
+  } else if (
+    property.modality === "Licitação Aberta" ||
+    property.modality === "Venda Online"
+  ) {
     return property.fim_venda_online;
   }
   return undefined;
@@ -339,11 +409,11 @@ export default function ImoveisCaixa() {
     acceptsFGTS: null,
     minDiscount: 0,
     areaMin: 0,
-    sortBy: ""
+    sortBy: "",
   });
 
   const { data: properties, isLoading } = useQuery({
-    queryKey: ['properties', filters],
+    queryKey: ["properties", filters],
     queryFn: () => fetchProperties(filters),
   });
 
@@ -352,9 +422,12 @@ export default function ImoveisCaixa() {
       <div className="bg-background py-12">
         <div className="container mx-auto px-4">
           <div className="mb-10 text-center">
-            <h1 className="text-3xl font-bold mb-2">Imóveis da Caixa Econômica Federal</h1>
+            <h1 className="text-3xl font-bold mb-2">
+              Imóveis da Caixa Econômica Federal
+            </h1>
             <p className="text-lg text-muted-foreground">
-              Encontre as melhores oportunidades de imóveis da Caixa com descontos exclusivos
+              Encontre as melhores oportunidades de imóveis da Caixa com
+              descontos exclusivos
             </p>
           </div>
 
@@ -376,7 +449,10 @@ export default function ImoveisCaixa() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {properties.map((property) => (
-                      <PropertyCard key={property.id} property={property} />
+                      <PropertyCard
+                        key={property.id}
+                        property={property.data}
+                      />
                     ))}
                   </div>
 
@@ -386,7 +462,9 @@ export default function ImoveisCaixa() {
                         <PaginationPrevious href="#" />
                       </PaginationItem>
                       <PaginationItem>
-                        <PaginationLink href="#" isActive>1</PaginationLink>
+                        <PaginationLink href="#" isActive>
+                          1
+                        </PaginationLink>
                       </PaginationItem>
                       <PaginationItem>
                         <PaginationLink href="#">2</PaginationLink>
@@ -402,7 +480,9 @@ export default function ImoveisCaixa() {
                 </>
               ) : (
                 <div className="text-center py-16">
-                  <h3 className="text-xl font-medium mb-2">Nenhum imóvel encontrado</h3>
+                  <h3 className="text-xl font-medium mb-2">
+                    Nenhum imóvel encontrado
+                  </h3>
                   <p className="text-muted-foreground">
                     Tente modificar os filtros para encontrar mais resultados.
                   </p>
