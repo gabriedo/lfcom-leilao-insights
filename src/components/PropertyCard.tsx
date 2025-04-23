@@ -28,9 +28,9 @@ interface Property {
   discount?: number;
   area: number;
   privateArea?: number;
-  bedrooms: number;
+  quartos: number;
   bathrooms: number;
-  parking: number;
+  garagem: number;
   imageUrl: string;
   images?: string[];
   propertyType: string;
@@ -136,10 +136,10 @@ export default function PropertyCard({ property }: PropertyCardProps) {
         <div className="absolute top-0 left-0 m-3">
           <Badge className={getModalityColor()}>{property.modality}</Badge>
         </div>
-        {property.discount && (
+        {property.desconto && (
           <div className="absolute top-0 right-0 m-3">
             <Badge variant="destructive" className="px-2 py-1 font-semibold">
-              {property.discount}% OFF
+              {property.desconto}% OFF
             </Badge>
           </div>
         )}
@@ -170,34 +170,37 @@ export default function PropertyCard({ property }: PropertyCardProps) {
 
         <div className="flex justify-between items-center">
           <div className="flex items-center flex-wrap gap-4 text-sm">
-            {property.bedrooms > 0 && (
+            {parseInt(property.quartos) > 0 && (
               <div className="flex items-center">
                 <Bed className="h-4 w-4 mr-1" />
-                <span>{property.bedrooms}</span>
+                <span>{property.quartos}</span>
               </div>
             )}
-            {property.parking > 0 && (
+            {parseInt(property.garagem) > 0 && (
               <div className="flex items-center">
                 <Square className="h-4 w-4 mr-1" />
                 <span>
-                  {property.parking} vaga{property.parking > 1 ? "s" : ""}
+                  {parseInt(property.garagem)} vaga
+                  {parseInt(property.garagem) > 1 ? "s" : ""}
                 </span>
               </div>
             )}
             <div className="flex items-center">
               <Maximize2 className="h-4 w-4 mr-1" />
-              <span>{property?.total_area.replace("m2", "")} m²</span>
+              <span>{property?.total_area?.replace("m2", "")} m²</span>
+              <span className="px-1">|</span>
+              <span>{property?.private_area?.replace("m2", "")} m²</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-2 mt-3">
-          {property.acceptsFinancing && (
+          {property.aceita_financiamento && (
             <Badge variant="secondary" className="text-xs">
               Financiamento
             </Badge>
           )}
-          {property.acceptsFGTS && (
+          {property.aceita_FGTS && (
             <Badge variant="secondary" className="text-xs">
               FGTS
             </Badge>
@@ -206,18 +209,18 @@ export default function PropertyCard({ property }: PropertyCardProps) {
       </CardContent>
       <CardFooter className="flex flex-col items-start border-t p-5 space-y-2">
         <div className="w-full">
-          {property.originalPrice ? (
+          {property.sale_value ? (
             <div className="flex flex-col">
               <span className="text-sm line-through text-muted-foreground">
-                De {formatCurrency(property.originalPrice)}
+                De R${property.preco_avaliacao}
               </span>
               <span className="text-xl font-bold text-primary">
-                Por {formatCurrency(property.price)}
+                Por R${property.sale_value}
               </span>
             </div>
           ) : (
             <span className="text-xl font-bold">
-              {formatCurrency(property.preco_avaliacao)}
+              R${property.preco_avaliacao}
             </span>
           )}
         </div>

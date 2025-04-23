@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/pagination";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { useLocation } from "react-router-dom";
 
 // Enhanced Property interface
 interface Property {
@@ -261,10 +262,9 @@ interface PropertyFilters {
 
 // Function to fetch properties (simulação de API)
 const fetchProperties = async (
-  filters: PropertyFilters
+  filters: PropertyFilters,
+  page
 ): Promise<Property[]> => {
-  // Simulando um delay de rede
-  await new Promise((resolve) => setTimeout(resolve, 500));
   var myHeaders = new Headers();
   myHeaders.append(
     "X-Api-Key",
@@ -276,79 +276,54 @@ const fetchProperties = async (
     headers: myHeaders,
     redirect: "follow",
   };
-
-  let response = await fetch(
-    "https://scraphub.comercify.shop/api/items/2/?page=1",
-    requestOptions
+  const url = new URL(
+    `https://scraphub.comercify.shop/api/items/2/?page=${page}`
   );
-  response = await response.json();
-  let filteredProperties = response.results;
+
   // Aplicar filtros
   if (filters.city && filters.city !== "all-cities") {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.city === filters.city
-    );
+    url.searchParams.set("city", filters.city);
   }
 
   if (filters.state && filters.state !== "all-states") {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.state === filters.state
-    );
+    url.searchParams.set("state", filters.state);
   }
 
   if (filters.propertyType && filters.propertyType !== "all-types") {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.propertyType === filters.propertyType
-    );
+    url.searchParams.set("type", filters.propertyType);
   }
 
   if (filters.modality && filters.modality !== "all-modalities") {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.modality === filters.modality
-    );
+    url.searchParams.set("modality", filters.modality);
   }
 
   if (filters.priceMin > 0 || filters.priceMax < 1000000) {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.price >= filters.priceMin && prop.price <= filters.priceMax
-    );
+    url.searchParams.set("preco_avaliacao__lte", filters.priceMax);
+    url.searchParams.set("preco_avaliacao__gte", filters.priceMin);
   }
 
   if (filters.bedrooms > 0) {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.bedrooms >= filters.bedrooms
-    );
+    url.searchParams.set("quartos", filters.bedrooms);
   }
 
   if (filters.parking > 0) {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.parking >= filters.parking
-    );
+    url.searchParams.set("garagem", filters.parking);
   }
 
   if (filters.acceptsFinancing !== null) {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.acceptsFinancing === filters.acceptsFinancing
-    );
+    url.searchParams.set("aceita_financiamento__isnull", false);
   }
 
   if (filters.acceptsFGTS !== null) {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.acceptsFGTS === filters.acceptsFGTS
-    );
+    url.searchParams.set("aceita_FGTS__isnull", false);
   }
 
   if (filters.minDiscount > 0) {
-    filteredProperties = filteredProperties.filter(
-      (prop) =>
-        prop.discount !== undefined && prop.discount >= filters.minDiscount
-    );
+    url.searchParams.set("desconto__gte", filters.minDiscount);
   }
 
   if (filters.areaMin > 0) {
-    filteredProperties = filteredProperties.filter(
-      (prop) => prop.area >= filters.areaMin
-    );
+    url.searchParams.set("private_area__gte", filters.areaMin);
   }
 
   // Sort properties
@@ -378,6 +353,10 @@ const fetchProperties = async (
         break;
     }
   }
+  let response = await fetch(url, requestOptions);
+  let filteredProperties = await response.json();
+  filteredProperties.currentPage = page;
+  filteredProperties.totalPages = filteredProperties.count / 20;
 
   return filteredProperties;
 };
@@ -411,10 +390,14 @@ export default function ImoveisCaixa() {
     areaMin: 0,
     sortBy: "",
   });
+  const { search } = useLocation();
+  const queryParams = new URLSearchParams(search);
 
-  const { data: properties, isLoading } = useQuery({
+  const page = queryParams.get("page");
+  const currentPage = typeof page != undefined ? parseInt(page) : 1;
+  const { data, isLoading } = useQuery({
     queryKey: ["properties", filters],
-    queryFn: () => fetchProperties(filters),
+    queryFn: () => fetchProperties(filters, currentPage),
   });
 
   return (
@@ -439,16 +422,16 @@ export default function ImoveisCaixa() {
             </div>
           ) : (
             <>
-              {properties && properties.length > 0 ? (
+              {data?.results && data?.results.length > 0 ? (
                 <>
                   <div className="mt-8 mb-4">
                     <p className="text-muted-foreground">
-                      {properties.length} imóveis encontrados
+                      {data?.count} imóveis encontrados
                     </p>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {properties.map((property) => (
+                    {data?.results?.map((property) => (
                       <PropertyCard
                         key={property.id}
                         property={property.data}
@@ -458,23 +441,51 @@ export default function ImoveisCaixa() {
 
                   <Pagination className="mt-10">
                     <PaginationContent>
+                      {currentPage > 1 ? (
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href={`/imoveis-caixa?page=${currentPage - 1}`}
+                          />
+                        </PaginationItem>
+                      ) : (
+                        ""
+                      )}
+                      {currentPage > 1 ? (
+                        <PaginationItem>
+                          <PaginationLink
+                            href={`/imoveis-caixa?page=${currentPage - 1}`}
+                          >
+                            {currentPage - 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ) : (
+                        ""
+                      )}
                       <PaginationItem>
-                        <PaginationPrevious href="#" />
-                      </PaginationItem>
-                      <PaginationItem>
-                        <PaginationLink href="#" isActive>
-                          1
+                        <PaginationLink isActive href="#">
+                          {currentPage}
                         </PaginationLink>
                       </PaginationItem>
-                      <PaginationItem>
-                        <PaginationLink href="#">2</PaginationLink>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <PaginationLink href="#">3</PaginationLink>
-                      </PaginationItem>
-                      <PaginationItem>
-                        <PaginationNext href="#" />
-                      </PaginationItem>
+                      {currentPage < data.count / 20 ? (
+                        <PaginationItem>
+                          <PaginationLink
+                            href={`/imoveis-caixa?page=${currentPage + 1}`}
+                          >
+                            {currentPage + 1}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ) : (
+                        ""
+                      )}
+                      {currentPage < data.count / 20 ? (
+                        <PaginationItem>
+                          <PaginationNext
+                            href={`/imoveis-caixa?page=${currentPage + 1}`}
+                          />
+                        </PaginationItem>
+                      ) : (
+                        ""
+                      )}
                     </PaginationContent>
                   </Pagination>
                 </>
