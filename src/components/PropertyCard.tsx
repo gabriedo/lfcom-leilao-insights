@@ -60,7 +60,7 @@ interface PropertyCardProps {
   property: Property;
 }
 
-export default function PropertyCard({ property }: PropertyCardProps) {
+export default function PropertyCard({ property, id }) {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -187,9 +187,9 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             )}
             <div className="flex items-center">
               <Maximize2 className="h-4 w-4 mr-1" />
-              <span>{property?.total_area?.replace("m2", "")} m²</span>
+              <span>{property?.total_area} m²</span>
               <span className="px-1">|</span>
-              <span>{property?.private_area?.replace("m2", "")} m²</span>
+              <span>{property?.private_area} m²</span>
             </div>
           </div>
         </div>
@@ -212,15 +212,15 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           {property.sale_value ? (
             <div className="flex flex-col">
               <span className="text-sm line-through text-muted-foreground">
-                De R${property.preco_avaliacao}
+                De {formatCurrency(property.preco_avaliacao)}
               </span>
               <span className="text-xl font-bold text-primary">
-                Por R${property.sale_value}
+                Por {formatCurrency(property.sale_value)}
               </span>
             </div>
           ) : (
             <span className="text-xl font-bold">
-              R${property.preco_avaliacao}
+              {formatCurrency(property.preco_avaliacao)}
             </span>
           )}
         </div>

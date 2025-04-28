@@ -22,10 +22,10 @@ interface Property {
   address: string;
   city: string;
   state: string;
-  price: number; // sale_value
-  originalPrice?: number; // preco_avaliacao
-  discount?: number;
-  area: number; // total_area
+  sale_value: any; // sale_value
+  preco_avaliacao?: any; // preco_avaliacao
+  discount?: any;
+  area: any; // total_area
   privateArea?: number; // private_area
   bedrooms: number; // quartos
   bathrooms: number; // banheiros
@@ -393,8 +393,8 @@ export default function ImoveisCaixa() {
   const { search } = useLocation();
   const queryParams = new URLSearchParams(search);
 
-  const page = queryParams.get("page");
-  const currentPage = typeof page != undefined ? parseInt(page) : 1;
+  let currentPage = queryParams.get("page") || 1;
+  currentPage = parseInt(currentPage);
   const { data, isLoading } = useQuery({
     queryKey: ["properties", filters],
     queryFn: () => fetchProperties(filters, currentPage),
