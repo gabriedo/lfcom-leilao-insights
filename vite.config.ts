@@ -7,7 +7,33 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+    port: 5174,
+    strictPort: true,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5174',
+        changeOrigin: true,
+        configure: (proxy, _options) => {
+          proxy.on('error', (err, _req, _res) => {
+            console.error('Erro no proxy:', err);
+          });
+          proxy.on('proxyReq', (proxyReq, req, _res) => {
+            console.log('Requisição recebida:', {
+              method: req.method,
+              url: req.url,
+              headers: req.headers
+            });
+          });
+          proxy.on('proxyRes', (proxyRes, req, _res) => {
+            console.log('Resposta do servidor:', {
+              statusCode: proxyRes.statusCode,
+              url: req.url,
+              headers: proxyRes.headers
+            });
+          });
+        },
+      },
+    }
   },
   plugins: [
     react(),

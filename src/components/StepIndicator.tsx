@@ -1,4 +1,3 @@
-
 import React from "react";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +15,7 @@ export default function StepIndicator({
   return (
     <div className="flex items-center justify-center w-full mb-8">
       {steps.map((step, index) => (
-        <React.Fragment key={index}>
+        <div key={index} className="flex items-center">
           <div
             className={cn(
               "flex flex-col items-center relative group",
@@ -57,7 +56,7 @@ export default function StepIndicator({
               )}
             />
           )}
-        </React.Fragment>
+        </div>
       ))}
     </div>
   );
