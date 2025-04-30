@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Link as LinkIcon, Loader2 } from "lucide-react";
@@ -7,6 +7,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { analysisService } from "@/services/analysis";
 import PropertyPreview from "./PropertyPreview";
 import { Progress } from "@/components/ui/progress";
+import { useDebounce } from "@/hooks/useDebounce";
+import { validatePropertyUrl, getUrlErrorMessage } from "@/utils/validators";
 
 export default function AnalysisForm() {
   const { toast } = useToast();
@@ -18,9 +20,21 @@ export default function AnalysisForm() {
   } | null>(null);
   const [propertyData, setPropertyData] = useState<any>(null);
   const [progress, setProgress] = useState(0);
+  const [urlError, setUrlError] = useState<string | null>(null);
+
+  // Aplica debounce na URL para validação
+  const debouncedUrl = useDebounce(propertyUrl, 500);
+
+  // Valida a URL quando ela muda (com debounce)
+  useEffect(() => {
+    const errorMessage = getUrlErrorMessage(debouncedUrl);
+    setUrlError(errorMessage);
+  }, [debouncedUrl]);
+
+  const isUrlValid = !urlError && validatePropertyUrl(propertyUrl);
 
   const handleExtractData = async () => {
-    if (!propertyUrl || !propertyUrl.trim()) {
+    if (!isUrlValid) {
       toast({
         title: "URL inválida",
         description: "Por favor, informe uma URL válida para o imóvel.",
@@ -81,32 +95,39 @@ export default function AnalysisForm() {
 
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
-      <div className="flex items-center space-x-4">
-        <Input 
-          type="url" 
-          placeholder="https://www.sitedeleilao.com.br/imovel/123"
-          value={propertyUrl}
-          onChange={(e) => setPropertyUrl(e.target.value)}
-          disabled={extracting}
-          className="flex-1"
-        />
-        <Button 
-          type="button" 
-          onClick={handleExtractData} 
-          disabled={extracting || !propertyUrl} 
-          className="whitespace-nowrap"
-        >
-          {extracting ? 
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Analisando...
-            </> : 
-            <>
-              <LinkIcon className="h-4 w-4 mr-2" />
-              Analisar Imóvel
-            </>
-          }
-        </Button>
+      <div className="space-y-2">
+        <div className="flex items-center space-x-4">
+          <Input 
+            type="url" 
+            placeholder="https://www.sitedeleilao.com.br/imovel/123"
+            value={propertyUrl}
+            onChange={(e) => setPropertyUrl(e.target.value)}
+            disabled={extracting}
+            className={`flex-1 ${urlError ? 'border-red-500' : ''}`}
+          />
+          <Button 
+            type="button" 
+            onClick={handleExtractData} 
+            disabled={extracting || !isUrlValid} 
+            className="whitespace-nowrap"
+          >
+            {extracting ? 
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Analisando...
+              </> : 
+              <>
+                <LinkIcon className="h-4 w-4 mr-2" />
+                Analisar Imóvel
+              </>
+            }
+          </Button>
+        </div>
+        {urlError && (
+          <p className="text-sm text-red-500 mt-1">
+            {urlError}
+          </p>
+        )}
       </div>
       
       {extracting && (

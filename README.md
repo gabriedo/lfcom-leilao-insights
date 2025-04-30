@@ -1,73 +1,93 @@
-# Welcome to your Lovable project
+# Leilão Insights
 
-## Project info
+Sistema de análise e monitoramento de leilões do B3.
 
-**URL**: https://lovable.dev/projects/46f76260-7e00-4047-a8A8e-fd4ce1d76bf3
+## Estrutura do Projeto
 
-## How can I edit this code?
-
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/46f76260-7e00-4047-a88e-fd4ce1d76bf3) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+leilao-insights/
+├── backend/                 # API FastAPI
+│   ├── app/
+│   │   ├── api/            # Rotas da API
+│   │   ├── core/           # Configurações e utilitários
+│   │   ├── models/         # Modelos de dados
+│   │   └── services/       # Lógica de negócio
+│   ├── tests/              # Testes automatizados
+│   ├── .env.example        # Exemplo de variáveis de ambiente
+│   └── requirements.txt    # Dependências Python
+└── frontend/               # Interface React
+    ├── src/
+    │   ├── components/     # Componentes React
+    │   ├── pages/         # Páginas da aplicação
+    │   ├── services/      # Serviços e integrações
+    │   └── utils/         # Utilitários
+    ├── public/            # Arquivos estáticos
+    └── package.json       # Dependências Node.js
 ```
 
-**Edit a file directly in GitHub**
+## Requisitos
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Python 3.8+
+- Node.js 16+
+- MongoDB 4.4+
 
-**Use GitHub Codespaces**
+## Configuração do Ambiente
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+### Backend
 
-## What technologies are used for this project?
+1. Crie um ambiente virtual Python:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+```
 
-This project is built with:
+2. Instale as dependências:
+```bash
+cd backend
+pip install -r requirements.txt
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+3. Configure as variáveis de ambiente:
+```bash
+cp .env.example .env
+# Edite o arquivo .env com suas configurações
+```
 
-## How can I deploy this project?
+4. Inicie o servidor:
+```bash
+uvicorn app.main:app --reload
+```
 
-Simply open [Lovable](https://lovable.dev/projects/46f76260-7e00-4047-a88e-fd4ce1d76bf3) and click on Share -> Publish.
+### Frontend
 
-## Can I connect a custom domain to my Lovable project?
+1. Instale as dependências:
+```bash
+cd frontend
+npm install
+```
 
-Yes it is!
+2. Inicie o servidor de desenvolvimento:
+```bash
+npm start
+```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Funcionalidades
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- Monitoramento em tempo real de leilões
+- Análise de dados históricos
+- Alertas e notificações
+- Dashboard interativo
+- Exportação de relatórios
+
+## Contribuição
+
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
+4. Push para a branch (`git push origin feature/nova-feature`)
+5. Abra um Pull Request
+
+## Licença
+
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
