@@ -2,8 +2,12 @@ from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, HttpUrl
 from urllib.parse import urlparse
 import httpx
+from routers import pre_analysis
 
 app = FastAPI()
+
+# Inclui as rotas do módulo pre_analysis
+app.include_router(pre_analysis.router)
 
 # Exemplo estático; depois podemos carregar do Mongo
 AUTHORIZED_DOMAINS = ["innlei.org.br"]  # Adicione outros domínios conforme necessário

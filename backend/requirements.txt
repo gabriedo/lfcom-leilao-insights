@@ -1,4 +1,6 @@
 fastapi
 uvicorn[standard]
 motor
-httpx 
+httpx
+requests
+beautifulsoup4 
