@@ -1,13 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.api.api_v1.api import api_router
+from core.config import settings
+from api.api_v1.api import api_router
+from utils.logger import setup_logging
 
 app = FastAPI(
     title="Leilão Insights API",
     description="API para análise e monitoramento de leilões do B3",
     version="1.0.0",
 )
+
+setup_logging()
 
 # Configuração do CORS
 app.add_middleware(
@@ -28,3 +31,10 @@ async def root():
         "version": "1.0.0",
         "docs_url": "/docs",
     } 
+
+# ✅ /pre-analyze funcional: scraping, validação, logging no MongoDB e resposta formatada OK.
+# 🔧 Melhorias pendentes sugeridas:
+# - Adicionar mais domínios confiáveis no leiloeiros.json
+# - Suporte a outros sites além do Sodré Santoro
+# - Mais campos: endereço, área, tipo de imóvel
+# - Implementar métricas de uso e performance

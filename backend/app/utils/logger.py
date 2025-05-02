@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 async def log_url(data: URLLog) -> URLLog:
     """
-    Salva um log de URL no MongoDB.
+    Salva um log de URL no MongoDB, evitando duplicidade.
     
     Args:
         data (URLLog): Dados do log a serem salvos
@@ -15,6 +15,13 @@ async def log_url(data: URLLog) -> URLLog:
         URLLog: O log salvo com ID e timestamp
     """
     try:
+        # Verifica se já existe um log para esta URL
+        existing_log = await mongodb.db.url_logs.find_one({"url": data.url})
+        
+        if existing_log:
+            logger.info(f"Log já existe para URL: {data.url}")
+            return URLLog(**existing_log)
+        
         # Converte o modelo Pydantic para dict
         log_data = data.model_dump(by_alias=True)
         

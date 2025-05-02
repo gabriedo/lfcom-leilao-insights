@@ -10,6 +10,7 @@ from typing import Optional
 import logging
 from backend.app.utils.logger import log_url
 from backend.app.models.url_log import URLLog, URLLogCreate
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -129,8 +130,10 @@ def extract_sodre_santoro_data(soup: BeautifulSoup) -> tuple[Optional[str], Opti
 @router.post("/pre-analyze", response_model=PreAnalysisResponse)
 async def pre_analyze(payload: UrlPayload):
     # Carrega as listas de domínios
-    trusted_domains = load_domains('data/leiloeiros.json')
-    fraud_domains = load_domains('data/fraudes.json')
+    file_path = os.path.join(os.path.dirname(__file__), '../../data/leiloeiros.json')
+    trusted_domains = load_domains(file_path)
+    file_path_fraudes = os.path.join(os.path.dirname(__file__), '../../data/fraudes.json')
+    fraud_domains = load_domains(file_path_fraudes)
     
     # Extrai o domínio da URL
     domain = urlparse(str(payload.url)).netloc
@@ -254,4 +257,65 @@ async def pre_analyze(payload: UrlPayload):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"error": "unreachable_url", "message": str(e)}
-        ) 
+        )
+
+async def extract_basic_data_from_html(html: str, url: str) -> dict:
+    """
+    Extrai dados básicos de uma página de leilão de imóveis.
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+    domain = urlparse(url).netloc
+
+    # Caso Sodré Santoro
+    if 'sodresantoro.com.br' in domain:
+        if 'extract_sodre_santoro_data' in globals():
+            titulo, valor_minimo, imagem, data_leilao = extract_sodre_santoro_data(soup)
+            return {
+                "titulo": titulo,
+                "valor_minimo": valor_minimo,
+                "imagem": imagem,
+                "data_leilao": data_leilao
+            }
+
+    # Scraping genérico
+    # Título
+    titulo = None
+    h1 = soup.find('h1')
+    if h1:
+        titulo = h1.text.strip()
+    else:
+        title = soup.find('title')
+        if title:
+            titulo = title.text.strip()
+
+    # Valor mínimo
+    valor_minimo = None
+    for text in soup.stripped_strings:
+        valor = extract_value_minimo(text)
+        if valor:
+            valor_minimo = valor
+            break
+
+    # Imagem
+    imagem = None
+    img = soup.find('img')
+    if img and img.get('src'):
+        imagem = img['src']
+        if not imagem.startswith(('http://', 'https://')):
+            base_url = f"{urlparse(url).scheme}://{domain}"
+            imagem = f"{base_url.rstrip('/')}/{imagem.lstrip('/')}"
+
+    # Data do leilão
+    data_leilao = None
+    for text in soup.stripped_strings:
+        data = extract_data_leilao(text)
+        if data:
+            data_leilao = data
+            break
+
+    return {
+        "titulo": titulo,
+        "valor_minimo": valor_minimo,
+        "imagem": imagem,
+        "data_leilao": data_leilao
+    } 
