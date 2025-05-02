@@ -8,8 +8,8 @@ import re
 from datetime import datetime
 from typing import Optional
 import logging
-from backend.app.utils.logger import log_url
-from backend.app.models.url_log import URLLog, URLLogCreate
+from app.utils.logger import log_url
+from app.models.url_log import URLLog, URLLogCreate
 import os
 
 logger = logging.getLogger(__name__)
