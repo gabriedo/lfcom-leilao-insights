@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from core.config import settings
 from api.api_v1.api import api_router
+from routers.pre_analysis import router as pre_analysis_router
 from utils.logger import setup_logging
 
 app = FastAPI(
@@ -23,6 +24,7 @@ app.add_middleware(
 
 # Inclusão das rotas da API
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(pre_analysis_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
