@@ -2,15 +2,12 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from routers.pre_analysis import router as pre_analysis_router
-from utils.logger import setup_logging
 
 app = FastAPI(
     title="Leilão Insights API",
     description="API para análise e monitoramento de leilões do B3",
     version="1.0.0",
 )
-
-setup_logging()
 
 # Configuração do CORS
 app.add_middleware(
