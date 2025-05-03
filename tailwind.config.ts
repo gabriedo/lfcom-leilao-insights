@@ -33,7 +33,6 @@ export default {
         xs: '480px',
       },
 			colors: {
-				...colors,
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
 				primary: {
