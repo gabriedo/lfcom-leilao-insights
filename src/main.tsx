@@ -3,7 +3,6 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { handleApiRequest } from './api';
 
 // Configurar o handler da API
 if (import.meta.env.DEV) {
@@ -20,8 +19,10 @@ if (import.meta.env.DEV) {
 
     if (url.includes('/api/extraction-callback')) {
       console.log('Requisição para extraction-callback detectada:', url);
-      const request = new Request(input, init);
-      return handleApiRequest(request);
+      // const request = new Request(input, init);
+      // return handleApiRequest(request);
+      // Apenas loga e retorna fetch original
+      return originalFetch(input, init);
     }
 
     // Se não for uma requisição para API, usa o fetch original
