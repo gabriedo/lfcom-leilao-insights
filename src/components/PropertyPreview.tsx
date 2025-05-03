@@ -8,8 +8,8 @@ import { ptBR } from "date-fns/locale";
 import { ExtractedPropertyData } from "@/types/property";
 import { Separator } from "@/components/ui/separator";
 
-export interface PropertyPreviewProps {
-  data: ExtractedPropertyData;
+interface PropertyPreviewProps {
+  data?: ExtractedPropertyData | null;
 }
 
 export default function PropertyPreview({ data }: PropertyPreviewProps) {
@@ -18,8 +18,8 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
   }
 
   const {
-    propertyType,
-    address,
+    propertyType = '',
+    address = '',
     documents = [],
     images = []
   } = data;
@@ -59,13 +59,13 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
       'bank': 'Venda Direta (Banco)',
       'other': 'Outro'
     };
-    return types[type] || type;
+    return types[type.toLowerCase()] || type;
   };
 
   return (
     <div className="space-y-6">
       {/* Imagens do imóvel */}
-      {images?.length > 0 && (
+      {images && images.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {images.map((image, index) => (
             <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
@@ -87,18 +87,9 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
             {getPropertyTypeIcon()}
             {getPropertyTypeLabel()}
           </CardTitle>
+          {address && <p className="text-sm text-muted-foreground">{address}</p>}
         </CardHeader>
         <CardContent className="space-y-4">
-          {address && (
-            <div className="flex items-start gap-2">
-              <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Endereço</p>
-                <p className="text-sm text-muted-foreground">{address}</p>
-              </div>
-            </div>
-          )}
-
           {documents?.length > 0 && (
             <>
               <Separator />
