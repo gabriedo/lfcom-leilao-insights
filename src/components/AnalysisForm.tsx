@@ -9,16 +9,32 @@ import PropertyPreview from "./PropertyPreview";
 import { Progress } from "@/components/ui/progress";
 import { useDebounce } from "@/hooks/useDebounce";
 import { validatePropertyUrl, getUrlErrorMessage } from "@/utils/validators";
+import { ExtractedPropertyData, ExtractionResult, PropertyDataSchema } from "@/types/property";
+import { cacheService } from "@/services/cache";
+import { validateDocumentUrl } from "@/utils/urlValidator";
+
+// Função de retry com backoff exponencial
+async function fetchWithRetry<T>(
+  fetchFn: () => Promise<T>,
+  retries = 3,
+  delay = 1000
+): Promise<T> {
+  try {
+    return await fetchFn();
+  } catch (err) {
+    if (retries === 0) throw err;
+    console.log(`Tentativa falhou. Tentando novamente em ${delay}ms...`);
+    await new Promise(res => setTimeout(res, delay));
+    return fetchWithRetry(fetchFn, retries - 1, delay * 2);
+  }
+}
 
 export default function AnalysisForm() {
   const { toast } = useToast();
   const [propertyUrl, setPropertyUrl] = useState("");
   const [extracting, setExtracting] = useState(false);
-  const [extractionResult, setExtractionResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
-  const [propertyData, setPropertyData] = useState<any>(null);
+  const [extractionResult, setExtractionResult] = useState<ExtractionResult | null>(null);
+  const [propertyData, setPropertyData] = useState<ExtractedPropertyData | null>(null);
   const [progress, setProgress] = useState(0);
   const [urlError, setUrlError] = useState<string | null>(null);
 
@@ -51,22 +67,60 @@ export default function AnalysisForm() {
     try {
       console.log('Iniciando extração para:', propertyUrl);
       
+      // Verificar cache
+      const cachedData = cacheService.get(propertyUrl);
+      if (cachedData) {
+        console.log('Dados encontrados no cache');
+        setPropertyData(cachedData);
+        setExtractionResult({
+          success: true,
+          message: "Dados recuperados do cache",
+          data: cachedData
+        });
+        setProgress(100);
+        return;
+      }
+
       // Atualizar o progresso a cada segundo
       const progressInterval = setInterval(() => {
         setProgress(prev => Math.min(prev + 3.33, 90)); // 90% máximo durante o polling
       }, 1000);
 
-      const result = await analysisService.extractDataFromUrl(propertyUrl);
+      const result = await fetchWithRetry(() => 
+        analysisService.extractDataFromUrl(propertyUrl)
+      );
+      
       console.log('Resultado da extração:', result);
       
       clearInterval(progressInterval);
       setProgress(100);
       
-      if (result.success && result.data) {
-        setPropertyData(result.data);
+      if (result?.success && result?.data) {
+        // Validar os dados com Zod
+        const parsed = PropertyDataSchema.safeParse(result.data);
+        if (!parsed.success) {
+          console.error("Erro ao validar resposta da API:", parsed.error.format());
+          throw new Error("Dados do imóvel inválidos ou incompletos");
+        }
+
+        // Validar URLs dos documentos
+        if (parsed.data.documents) {
+          for (const doc of parsed.data.documents) {
+            const urlValidation = await validateDocumentUrl(doc.url);
+            if (!urlValidation.isValid) {
+              console.warn(`URL inválida para documento ${doc.name}: ${urlValidation.error}`);
+            }
+          }
+        }
+
+        // Salvar no cache
+        cacheService.set(propertyUrl, parsed.data);
+
+        setPropertyData(parsed.data);
         setExtractionResult({
           success: true,
           message: "Dados extraídos com sucesso!",
+          data: parsed.data
         });
         
         toast({
@@ -74,18 +128,18 @@ export default function AnalysisForm() {
           description: "Os dados do imóvel foram extraídos com sucesso.",
         });
       } else {
-        throw new Error(result.error || 'Erro desconhecido na extração');
+        throw new Error(result?.error || 'Dados da consulta não disponíveis');
       }
     } catch (error) {
       console.error("Erro na extração:", error);
       setExtractionResult({
         success: false,
-        message: error.message || "Não foi possível extrair os dados do imóvel.",
+        message: error instanceof Error ? error.message : "Não foi possível extrair os dados do imóvel.",
       });
       
       toast({
         title: "Erro na extração",
-        description: error.message || "Não foi possível extrair os dados do imóvel.",
+        description: error instanceof Error ? error.message : "Não foi possível extrair os dados do imóvel.",
         variant: "destructive",
       });
     } finally {

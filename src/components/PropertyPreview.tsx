@@ -2,43 +2,57 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, FileText, Download, ArrowUpRight } from "lucide-react";
+import { MapPin, Calendar, FileText, Download, ArrowUpRight, Building2, Home, Landmark } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ExtractedPropertyData } from "@/types/property";
+import { Separator } from "@/components/ui/separator";
 
-interface PropertyPreviewProps {
-  data: {
-    propertyType: string;
-    auctionType: string;
-    minBid: string;
-    evaluatedValue: string;
-    address: string;
-    auctionDate?: string;
-    description?: string;
-    images?: string[];
-    documents?: {
-      url: string;
-      type: string;
-      name: string;
-    }[];
-  };
+export interface PropertyPreviewProps {
+  data: ExtractedPropertyData;
 }
 
 export default function PropertyPreview({ data }: PropertyPreviewProps) {
-  // Função para formatar o tipo de imóvel
-  const formatPropertyType = (type: string) => {
-    const types: { [key: string]: string } = {
-      'apartment': 'Apartamento',
-      'house': 'Casa',
-      'commercial': 'Comercial',
-      'land': 'Terreno',
-      'rural': 'Rural'
-    };
-    return types[type] || type;
+  if (!data) {
+    return null;
+  }
+
+  const {
+    propertyType,
+    address,
+    documents = [],
+    images = []
+  } = data;
+
+  const getPropertyTypeIcon = () => {
+    switch (propertyType?.toLowerCase()) {
+      case "apartment":
+        return <Building2 className="h-4 w-4" />;
+      case "house":
+        return <Home className="h-4 w-4" />;
+      case "land":
+        return <Landmark className="h-4 w-4" />;
+      default:
+        return <Home className="h-4 w-4" />;
+    }
+  };
+
+  const getPropertyTypeLabel = () => {
+    switch (propertyType?.toLowerCase()) {
+      case "apartment":
+        return "Apartamento";
+      case "house":
+        return "Casa";
+      case "land":
+        return "Terreno";
+      default:
+        return propertyType || "Não especificado";
+    }
   };
 
   // Função para formatar o tipo de leilão
-  const formatAuctionType = (type: string) => {
+  const formatAuctionType = (type?: string) => {
+    if (!type) return 'Não informado';
     const types: { [key: string]: string } = {
       'judicial': 'Leilão Judicial',
       'extrajudicial': 'Leilão Extrajudicial',
@@ -51,14 +65,15 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
   return (
     <div className="space-y-6">
       {/* Imagens do imóvel */}
-      {data.images && data.images.length > 0 && (
+      {images.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {data.images.map((image, index) => (
+          {images.map((image, index) => (
             <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
               <img
                 src={image}
-                alt={`Imagem ${index + 1} do imóvel`}
+                alt={`Imagem ${index + 1}`}
                 className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           ))}
@@ -68,16 +83,49 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
       {/* Informações principais */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold">
-              {formatPropertyType(data.propertyType)}
-            </CardTitle>
-            <Badge variant="outline" className="text-sm">
-              {formatAuctionType(data.auctionType)}
-            </Badge>
-          </div>
+          <CardTitle className="flex items-center gap-2">
+            {getPropertyTypeIcon()}
+            {getPropertyTypeLabel()}
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4">
+          {address && (
+            <div className="flex items-start gap-2">
+              <MapPin className="h-4 w-4 mt-1 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Endereço</p>
+                <p className="text-sm text-muted-foreground">{address}</p>
+              </div>
+            </div>
+          )}
+
+          {documents.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Documentos</p>
+                <div className="grid gap-2">
+                  {documents.map((doc, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-blue-600 hover:underline"
+                      >
+                        {doc.name}
+                      </a>
+                      <Badge variant="outline" className="ml-auto">
+                        {doc.type?.toUpperCase() || "PDF"}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
           {/* Valores */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -92,15 +140,6 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
                 {data.evaluatedValue || 'Não informado'}
               </p>
             </div>
-          </div>
-
-          {/* Endereço */}
-          <div className="space-y-2">
-            <div className="flex items-center text-muted-foreground">
-              <MapPin className="h-4 w-4 mr-2" />
-              <span className="text-sm">Endereço</span>
-            </div>
-            <p className="text-lg">{data.address || 'Não informado'}</p>
           </div>
 
           {/* Data do leilão */}
@@ -121,29 +160,6 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">Descrição</p>
               <p className="text-lg">{data.description}</p>
-            </div>
-          )}
-
-          {/* Documentos */}
-          {data.documents && data.documents.length > 0 && (
-            <div className="space-y-4">
-              <p className="text-sm text-muted-foreground">Documentos</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {data.documents.map((doc, index) => (
-                  <Button
-                    key={index}
-                    variant="outline"
-                    className="w-full justify-start"
-                    asChild
-                  >
-                    <a href={doc.url} target="_blank" rel="noopener noreferrer">
-                      <FileText className="h-4 w-4 mr-2" />
-                      {doc.name}
-                      <Download className="h-4 w-4 ml-2" />
-                    </a>
-                  </Button>
-                ))}
-              </div>
             </div>
           )}
         </CardContent>

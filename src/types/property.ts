@@ -1,3 +1,73 @@
+import { z } from "zod";
+
+// Schema para documentos
+export const DocumentSchema = z.object({
+  url: z.string(),
+  type: z.string(),
+  name: z.string()
+}).strict();
+
+// Schema para dados do imóvel
+export const PropertyDataSchema = z.object({
+  propertyType: z.string().optional(),
+  auctionType: z.string().optional(),
+  minBid: z.string().optional(),
+  evaluatedValue: z.string().optional(),
+  address: z.string().optional(),
+  auctionDate: z.string().optional(),
+  description: z.string().optional(),
+  images: z.array(z.string()).optional(),
+  documents: z.preprocess(
+    (docs: unknown) => {
+      if (!Array.isArray(docs)) return undefined;
+      const validDocs = docs
+        .filter((doc): doc is z.infer<typeof DocumentSchema> => 
+          doc && 
+          typeof doc === 'object' && 
+          'url' in doc && 
+          'type' in doc && 
+          'name' in doc &&
+          typeof doc.url === 'string' &&
+          typeof doc.type === 'string' &&
+          typeof doc.name === 'string'
+        );
+      return validDocs.length > 0 ? validDocs : undefined;
+    },
+    z.array(DocumentSchema).optional()
+  )
+}).strict();
+
+// Tipos inferidos dos schemas
+export type Document = z.infer<typeof DocumentSchema>;
+export type ExtractedPropertyData = z.infer<typeof PropertyDataSchema>;
+
+// Interface para resultado da extração
+export interface ExtractionResult {
+  success: boolean;
+  message: string;
+  data?: ExtractedPropertyData;
+}
+
+// Função para validar e transformar documentos
+export function validateDocuments(docs: unknown): Document[] | undefined {
+  if (!Array.isArray(docs)) return undefined;
+  
+  const validDocs = docs
+    .filter((doc): doc is Document => 
+      doc && 
+      typeof doc === 'object' && 
+      'url' in doc && 
+      'type' in doc && 
+      'name' in doc &&
+      typeof doc.url === 'string' &&
+      typeof doc.type === 'string' &&
+      typeof doc.name === 'string'
+    );
+    
+  return validDocs.length > 0 ? validDocs : undefined;
+}
+
+// Tipos existentes
 export interface PropertyData {
   id: string;
   ps?: string[];

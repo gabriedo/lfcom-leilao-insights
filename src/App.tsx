@@ -1,5 +1,4 @@
-
-import React from "react";
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -34,44 +33,50 @@ import ConhecerMetodologia from "./pages/ConhecerMetodologia";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/nova-analise" element={<ProtectedRoute><NovaAnalise /></ProtectedRoute>} />
-            <Route path="/meu-plano" element={<ProtectedRoute><MeuPlano /></ProtectedRoute>} />
-            <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
-            <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
-            <Route path="/relatorio/:id" element={<PropertyReportPage />} />
-            <Route path="/conteudos" element={<Conteudos />} />
-            <Route path="/conteudos/:id" element={<ConteudoDetalhe />} />
-            <Route path="/como-funciona" element={<ComoFunciona />} />
-            <Route path="/conhecer-metodologia" element={<ConhecerMetodologia />} />
-            <Route path="/assessoria" element={<Assessoria />} />
-            <Route path="/contato" element={<Contato />} />
-            <Route path="/precos" element={<Precos />} />
-            <Route path="/leiloeiros" element={<LeiloeirosPagina />} />
-            <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/faq" element={<FAQ />} />
-            <Route path="/sobre" element={<Sobre />} />
-            <Route path="/ajuda" element={<Ajuda />} />
-            <Route path="/termos" element={<Termos />} />
-            <Route path="/privacidade" element={<Privacidade />} />
-            <Route path="/recursos" element={<Recursos />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
-  </React.StrictMode>
-);
+const App = () => {
+  useEffect(() => {
+    console.log("build-forcado-v1"); // força novo hash no JS final
+  }, []);
+
+  return (
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <Toaster />
+            <Sonner />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+              <Route path="/nova-analise" element={<ProtectedRoute><NovaAnalise /></ProtectedRoute>} />
+              <Route path="/meu-plano" element={<ProtectedRoute><MeuPlano /></ProtectedRoute>} />
+              <Route path="/imoveis-caixa" element={<ImoveisCaixa />} />
+              <Route path="/imoveis-caixa/:id" element={<PropertyDetails />} />
+              <Route path="/relatorio/:id" element={<PropertyReportPage />} />
+              <Route path="/conteudos" element={<Conteudos />} />
+              <Route path="/conteudos/:id" element={<ConteudoDetalhe />} />
+              <Route path="/como-funciona" element={<ComoFunciona />} />
+              <Route path="/conhecer-metodologia" element={<ConhecerMetodologia />} />
+              <Route path="/assessoria" element={<Assessoria />} />
+              <Route path="/contato" element={<Contato />} />
+              <Route path="/precos" element={<Precos />} />
+              <Route path="/leiloeiros" element={<LeiloeirosPagina />} />
+              <Route path="/perfil" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/faq" element={<FAQ />} />
+              <Route path="/sobre" element={<Sobre />} />
+              <Route path="/ajuda" element={<Ajuda />} />
+              <Route path="/termos" element={<Termos />} />
+              <Route path="/privacidade" element={<Privacidade />} />
+              <Route path="/recursos" element={<Recursos />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </React.StrictMode>
+  );
+};
 
 export default App;

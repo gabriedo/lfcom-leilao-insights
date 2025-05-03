@@ -119,7 +119,7 @@ function formatAndValidateData(data: any): ExtractionResponse {
   }
 
   // Formatação dos valores monetários
-  const formatCurrency = (value: string | number) => {
+  const formatCurrency = (value: string | number | undefined | null) => {
     if (!value) return '';
     if (typeof value === 'string' && value.includes('R$')) return value;
     const number = typeof value === 'string' ? parseFloat(value.replace(/\D/g, '')) / 100 : value;
@@ -132,15 +132,33 @@ function formatAndValidateData(data: any): ExtractionResponse {
 
   // Formatar os dados mantendo os valores originais se não houver dados novos
   const formattedData = {
-    propertyType: data.propertyType || '',
-    auctionType: data.auctionType || 'Leilão',
-    minBid: formatCurrency(data.minBid || ''),
-    evaluatedValue: formatCurrency(data.evaluatedValue || ''),
-    address: data.address || '',
-    auctionDate: data.auctionDate || '',
+    propertyType: data.propertyType || data.type || '',
+    auctionType: data.auctionType || data.modality || 'Leilão',
+    minBid: formatCurrency(data.minBid || data.sale_value || data.preco_avaliacao),
+    evaluatedValue: formatCurrency(data.evaluatedValue || data.preco_avaliacao),
+    address: data.address || `${data.title || ''} - ${data.city || ''}, ${data.state || ''}`.trim(),
+    auctionDate: data.auctionDate || data.fim_leilao || data.fim_1 || data.fim_2 || data.fim_venda_online || '',
     description: data.description || '',
     images: Array.isArray(data.images) ? data.images.filter(Boolean) : [],
-    documents: Array.isArray(data.documents) ? data.documents.filter((doc: any) => doc && doc.url) : []
+    documents: Array.isArray(data.documents) ? 
+      data.documents.filter((doc: any) => doc && doc.url && doc.name) : 
+      [
+        data.edital_url && {
+          url: data.edital_url,
+          type: 'edital',
+          name: 'Edital do Leilão'
+        },
+        data.matricula_url && {
+          url: data.matricula_url,
+          type: 'matricula',
+          name: 'Matrícula do Imóvel'
+        },
+        data.regras_de_venda_url && {
+          url: data.regras_de_venda_url,
+          type: 'regras',
+          name: 'Regras de Venda'
+        }
+      ].filter(Boolean)
   };
 
   console.log('Dados formatados:', formattedData);
