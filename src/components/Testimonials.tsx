@@ -1,4 +1,3 @@
-
 import { StarIcon } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -57,6 +56,7 @@ export default function Testimonials() {
                       src={testimonial.image} 
                       alt={testimonial.name} 
                       className="w-full h-full object-cover"
+                      onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/placeholder.svg'; }}
                     />
                   </div>
                   <div>

@@ -77,6 +77,7 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
                 alt={`Imagem ${index + 1}`}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/placeholder.svg'; }}
               />
             </div>
           ))}
