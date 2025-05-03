@@ -1,4 +1,3 @@
-
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -57,6 +56,7 @@ export default function Hero() {
                     src={`https://randomuser.me/api/portraits/${i % 2 === 0 ? 'women' : 'men'}/${20 + i}.jpg`}
                     alt={`User ${i}`}
                     className="w-8 h-8 rounded-full border-2 border-white"
+                    onError={e => { e.currentTarget.onerror = null; e.currentTarget.src = '/placeholder.svg'; }}
                   />
                 ))}
               </div>
