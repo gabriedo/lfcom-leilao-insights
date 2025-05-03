@@ -35,7 +35,7 @@ const queryClient = new QueryClient();
 
 const App = () => {
   useEffect(() => {
-    console.log("build-forcado-v2"); // força novo hash no JS final
+    console.log("build-forcado-v3"); // força novo hash no JS final
   }, []);
 
   return (
