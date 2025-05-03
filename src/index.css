@@ -57,7 +57,7 @@
 
 @layer components {
   .lfcom-card {
-    @apply bg-white border border-lfcom-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
+    @apply border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
   }
 
   .lfcom-button-primary {
