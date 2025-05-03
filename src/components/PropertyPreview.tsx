@@ -65,7 +65,7 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
   return (
     <div className="space-y-6">
       {/* Imagens do imóvel */}
-      {images.length > 0 && (
+      {images?.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {images.map((image, index) => (
             <div key={index} className="relative aspect-video rounded-lg overflow-hidden">
@@ -99,27 +99,29 @@ export default function PropertyPreview({ data }: PropertyPreviewProps) {
             </div>
           )}
 
-          {documents.length > 0 && (
+          {documents?.length > 0 && (
             <>
               <Separator />
               <div className="space-y-2">
                 <p className="text-sm font-medium">Documentos</p>
                 <div className="grid gap-2">
                   {documents.map((doc, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <a
-                        href={doc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-blue-600 hover:underline"
-                      >
-                        {doc.name}
-                      </a>
-                      <Badge variant="outline" className="ml-auto">
-                        {doc.type?.toUpperCase() || "PDF"}
-                      </Badge>
-                    </div>
+                    doc?.url && (
+                      <div key={index} className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:underline"
+                        >
+                          {doc.name || `Documento ${index + 1}`}
+                        </a>
+                        <Badge variant="outline" className="ml-auto">
+                          {doc.type?.toUpperCase() || "PDF"}
+                        </Badge>
+                      </div>
+                    )
                   ))}
                 </div>
               </div>

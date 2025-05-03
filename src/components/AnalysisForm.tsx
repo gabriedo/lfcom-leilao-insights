@@ -104,11 +104,13 @@ export default function AnalysisForm() {
         }
 
         // Validar URLs dos documentos
-        if (parsed.data.documents) {
+        if (parsed.data?.documents) {
           for (const doc of parsed.data.documents) {
-            const urlValidation = await validateDocumentUrl(doc.url);
-            if (!urlValidation.isValid) {
-              console.warn(`URL inválida para documento ${doc.name}: ${urlValidation.error}`);
+            if (doc?.url) {
+              const urlValidation = await validateDocumentUrl(doc.url);
+              if (!urlValidation.isValid) {
+                console.warn(`URL inválida para documento ${doc.name}: ${urlValidation.error}`);
+              }
             }
           }
         }
