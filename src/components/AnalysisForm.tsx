@@ -151,6 +151,10 @@ export default function AnalysisForm() {
     }
   };
 
+  if (propertyData) {
+    console.log("propertyData em AnalysisForm:", propertyData);
+  }
+
   return (
     <div className="w-full max-w-3xl mx-auto space-y-6">
       <div className="space-y-2">
@@ -205,7 +209,9 @@ export default function AnalysisForm() {
         </Alert>
       )}
       
-      {propertyData && <PropertyPreview data={propertyData} />}
+      {propertyData && (
+        <PropertyPreview data={propertyData} />
+      )}
     </div>
   );
 }
