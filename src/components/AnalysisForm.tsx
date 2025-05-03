@@ -13,6 +13,8 @@ import { ExtractedPropertyData, ExtractionResult, PropertyDataSchema } from "@/t
 import { cacheService } from "@/services/cache";
 import { validateDocumentUrl } from "@/utils/urlValidator";
 
+console.log("AnalysisForm.tsx iniciado");
+
 // Função de retry com backoff exponencial
 async function fetchWithRetry<T>(
   fetchFn: () => Promise<T>,
@@ -130,7 +132,7 @@ export default function AnalysisForm() {
           description: "Os dados do imóvel foram extraídos com sucesso.",
         });
       } else {
-        throw new Error(result?.error || 'Dados da consulta não disponíveis');
+        throw new Error(result?.message || 'Dados da consulta não disponíveis');
       }
     } catch (error) {
       console.error("Erro na extração:", error);
@@ -155,7 +157,7 @@ export default function AnalysisForm() {
         <div className="flex items-center space-x-4">
           <Input 
             type="url" 
-            placeholder="https://www.sitedeleilao.com.br/imovel/123"
+            placeholder="      EMhttps://www.sitedeleilao.com.br/imovel/123"
             value={propertyUrl}
             onChange={(e) => setPropertyUrl(e.target.value)}
             disabled={extracting}
