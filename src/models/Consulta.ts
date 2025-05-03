@@ -1,3 +1,4 @@
+console.log("models/Consulta.ts iniciado");
 import { z } from 'zod';
 
 // Schema de validação para Consulta

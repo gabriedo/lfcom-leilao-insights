@@ -1,3 +1,4 @@
+console.log("api/index.ts iniciado");
 import { GET, POST, OPTIONS } from './extraction-callback';
 import { ConsultaRepository } from '@/repositories/consultaRepository';
 import { conectarMongoDB } from '@/config/database';
