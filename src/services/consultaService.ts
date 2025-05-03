@@ -1,3 +1,5 @@
+console.log("services/consultaService.ts iniciado");
+
 import { Consulta, NovaConsulta, AtualizarConsulta } from '@/models/Consulta';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5174';
