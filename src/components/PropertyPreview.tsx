@@ -12,7 +12,10 @@ interface PropertyPreviewProps {
   data?: ExtractedPropertyData | null;
 }
 
+console.log("PropertyPreview.tsx iniciado");
+
 export default function PropertyPreview({ data }: PropertyPreviewProps) {
+  console.log("PropertyPreview data:", data);
   if (!data) {
     return null;
   }
