@@ -39,6 +39,9 @@ export default function AnalysisForm() {
   const [propertyData, setPropertyData] = useState<ExtractedPropertyData | null>(null);
   const [progress, setProgress] = useState(0);
   const [urlError, setUrlError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pollingAttempt, setPollingAttempt] = useState(0);
+  const [maxPollingAttempts] = useState(15); // 30 segundos total
 
   // Aplica debounce na URL para validação
   const debouncedUrl = useDebounce(propertyUrl, 500);
@@ -65,6 +68,8 @@ export default function AnalysisForm() {
     setExtractionResult(null);
     setPropertyData(null);
     setProgress(0);
+    setError(null);
+    setPollingAttempt(0);
     
     try {
       console.log('Iniciando extração para:', propertyUrl);
@@ -88,6 +93,11 @@ export default function AnalysisForm() {
         setProgress(prev => Math.min(prev + 3.33, 90)); // 90% máximo durante o polling
       }, 1000);
 
+      // Atualizar o contador de tentativas
+      const pollingInterval = setInterval(() => {
+        setPollingAttempt(prev => Math.min(prev + 1, maxPollingAttempts));
+      }, 2000);
+
       const result = await fetchWithRetry(() => 
         analysisService.extractDataFromUrl(propertyUrl)
       );
@@ -95,6 +105,7 @@ export default function AnalysisForm() {
       console.log('Resultado da extração:', result);
       
       clearInterval(progressInterval);
+      clearInterval(pollingInterval);
       setProgress(100);
       
       if (result?.success && result?.data) {
@@ -136,19 +147,29 @@ export default function AnalysisForm() {
       }
     } catch (error) {
       console.error("Erro na extração:", error);
+      const errorMessage = error instanceof Error ? error.message : "Não foi possível extrair os dados do imóvel.";
+      setError(errorMessage);
       setExtractionResult({
         success: false,
-        message: error instanceof Error ? error.message : "Não foi possível extrair os dados do imóvel.",
+        message: errorMessage,
       });
       
       toast({
         title: "Erro na extração",
-        description: error instanceof Error ? error.message : "Não foi possível extrair os dados do imóvel.",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
       setExtracting(false);
     }
+  };
+
+  const handleConfirm = () => {
+    // TODO: Implementar redirecionamento para página de pagamento
+    toast({
+      title: "Redirecionando...",
+      description: "Você será redirecionado para a página de pagamento.",
+    });
   };
 
   if (propertyData) {
@@ -161,7 +182,7 @@ export default function AnalysisForm() {
         <div className="flex items-center space-x-4">
           <Input 
             type="url" 
-            placeholder="      EMhttps://www.sitedeleilao.com.br/imovel/123"
+            placeholder="Cole a URL do imóvel aqui"
             value={propertyUrl}
             onChange={(e) => setPropertyUrl(e.target.value)}
             disabled={extracting}
@@ -196,12 +217,16 @@ export default function AnalysisForm() {
         <div className="space-y-2">
           <Progress value={progress} className="w-full" />
           <p className="text-sm text-muted-foreground text-center">
-            Extraindo dados do imóvel... {progress}%
+            {pollingAttempt > 0 ? (
+              `Buscando dados do imóvel... Tentativa ${pollingAttempt}/${maxPollingAttempts}`
+            ) : (
+              `Iniciando análise... ${progress}%`
+            )}
           </p>
         </div>
       )}
       
-      {extractionResult && (
+      {extractionResult && !extracting && (
         <Alert variant={extractionResult.success ? "default" : "destructive"}>
           <AlertDescription>
             {extractionResult.message}
@@ -209,9 +234,12 @@ export default function AnalysisForm() {
         </Alert>
       )}
       
-      {propertyData && (
-        <PropertyPreview data={propertyData} />
-      )}
+      <PropertyPreview 
+        data={propertyData} 
+        isLoading={extracting}
+        error={error}
+        onConfirm={handleConfirm}
+      />
     </div>
   );
 }

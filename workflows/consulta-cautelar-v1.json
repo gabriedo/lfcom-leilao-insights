@@ -11,7 +11,7 @@
         },
         "authentication": "none",
         "httpMethod": "POST",
-        "isTest": true
+        "isTest": false
       },
       "name": "Webhook",
       "type": "n8n-nodes-base.webhook",
@@ -20,12 +20,12 @@
     },
     {
       "parameters": {
-        "url": "https://api.lfcom.com.br:8000/pre-analyze",
+        "url": "http://localhost:8001/api/pre-analysis",
         "options": {
-          "timeout": 30000,
+          "timeout": 60000,
           "retry": {
-            "count": 3,
-            "waitTime": 2000
+            "count": 5,
+            "waitTime": 5000
           }
         },
         "sendBody": true,
@@ -81,6 +81,9 @@
               "field2": "debug"
             }
           ]
+        },
+        "options": {
+          "destinationNodeName": "HTTP Request"
         }
       },
       "name": "Merge",
@@ -128,9 +131,10 @@
   "settings": {
     "executionOrder": "v1",
     "saveExecutionProgress": true,
-    "saveManualExecutions": true
+    "saveManualExecutions": true,
+    "timezone": "America/Sao_Paulo"
   },
-  "versionId": "1",
+  "versionId": "2",
   "id": "1",
   "meta": {
     "instanceId": "1"

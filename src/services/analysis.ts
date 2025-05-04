@@ -29,40 +29,94 @@ interface ExtractionResponse {
   error?: string;
 }
 
+// Função para sanitizar a URL
+function sanitizeUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.toString();
+  } catch (error) {
+    console.error('Erro ao sanitizar URL:', error);
+    throw new Error('URL inválida');
+  }
+}
+
 export const analysisService = {
   // Extrair dados da URL
   async extractDataFromUrl(url: string): Promise<ExtractionResult> {
     try {
       console.log('Iniciando extração para URL:', url);
       
-      const response = await fetch(`${API_URL}/api/extract`, {
+      // Sanitiza a URL
+      const sanitizedUrl = sanitizeUrl(url);
+      console.log('URL sanitizada:', sanitizedUrl);
+      
+      // Primeiro, inicia a extração
+      const extractResponse = await fetch(`${API_URL}/api/pre-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url: sanitizedUrl }),
       });
 
-      if (!response.ok) {
-        throw new Error('Erro ao extrair dados do imóvel');
+      if (!extractResponse.ok) {
+        const errorData = await extractResponse.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Erro ao iniciar extração do imóvel');
       }
 
-      const data = await response.json();
-      console.log('Dados recebidos da API:', data);
-
-      // Formata e valida os dados
-      const formattedData = formatAndValidateData(data);
-      console.log('Dados formatados:', formattedData);
-
-      if (!formattedData.success || !formattedData.data) {
-        throw new Error(formattedData.error || 'Erro ao formatar dados do imóvel');
+      // Faz polling para verificar os resultados
+      const maxAttempts = 15; // 30 segundos total (15 tentativas * 2 segundos)
+      const interval = 2000; // 2 segundos
+      let lastError: Error | null = null;
+      
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        console.log(`Tentativa ${attempt + 1}/${maxAttempts} de buscar resultados`);
+        
+        try {
+          const response = await fetch(`${API_URL}/api/pre-analysis?url=${encodeURIComponent(sanitizedUrl)}`);
+          
+          if (response.status === 404) {
+            console.log('Análise ainda não disponível, aguardando...');
+            await new Promise(resolve => setTimeout(resolve, interval));
+            continue;
+          }
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || 'Erro ao buscar resultados da extração');
+          }
+          
+          const result = await response.json();
+          console.log('Resposta da API:', result);
+          
+          // Formata e valida os dados
+          const formattedData = formatAndValidateData(result);
+          console.log('Dados formatados:', formattedData);
+          
+          if (!formattedData.success || !formattedData.data) {
+            throw new Error(formattedData.error || 'Erro ao formatar dados do imóvel');
+          }
+          
+          return {
+            success: true,
+            message: 'Dados extraídos com sucesso',
+            data: formattedData.data
+          };
+        } catch (error) {
+          console.error(`Erro na tentativa ${attempt + 1}:`, error);
+          lastError = error instanceof Error ? error : new Error('Erro desconhecido');
+          
+          // Se for o último erro, lança a exceção
+          if (attempt === maxAttempts - 1) {
+            throw lastError;
+          }
+          
+          // Aguarda antes da próxima tentativa
+          await new Promise(resolve => setTimeout(resolve, interval));
+        }
       }
-
-      return {
-        success: true,
-        message: 'Dados extraídos com sucesso',
-        data: formattedData.data
-      };
+      
+      throw lastError || new Error('Tempo limite excedido ao aguardar extração');
     } catch (error) {
       console.error('Erro na extração:', error);
       return {
@@ -86,12 +140,12 @@ function formatAndValidateData(data: any): ExtractionResponse {
     const formattedData: ExtractedPropertyData = {
       propertyType: data.propertyType || data.type || '',
       auctionType: data.auctionType || data.modality || 'Leilão',
-      minBid: formatCurrency(data.minBid || data.sale_value || data.preco_avaliacao),
+      minBid: formatCurrency(data.minBid || data.valor_minimo || data.sale_value || data.preco_avaliacao),
       evaluatedValue: formatCurrency(data.evaluatedValue || data.preco_avaliacao),
-      address: data.address || `${data.title || ''} - ${data.city || ''}, ${data.state || ''}`.trim(),
-      auctionDate: data.auctionDate || data.fim_leilao || data.fim_1 || data.fim_2 || data.fim_venda_online || '',
+      address: data.address || data.titulo || '',
+      auctionDate: data.auctionDate || data.data_leilao || data.fim_leilao || data.fim_1 || data.fim_2 || data.fim_venda_online || '',
       description: data.description || '',
-      images: Array.isArray(data.images) ? data.images.filter(Boolean) : [],
+      images: Array.isArray(data.images) ? data.images.filter(Boolean) : [data.imagem].filter(Boolean),
       documents: Array.isArray(data.documents) ? 
         data.documents.filter((doc: any) => doc && doc.url && doc.name) : 
         [
