@@ -35,71 +35,16 @@ cp .env.example .env
 # Edite o arquivo .env com suas configurações
 ```
 
-## Configuração
+## Setup e execução local
 
-O arquivo `.env` deve conter as seguintes variáveis:
+### 1. Variáveis de ambiente
+- Duplique o arquivo `.env.example` para `.env` na raiz.
+- Preencha no `.env`:
+  ```env
+  MONGO_URL=<sua_connection_string_do_mongo>
+  CAIXA_API_KEY=<sua_api_key_da_caixa>
+  VITE_API_URL=http://localhost:8000/caixa
+  ```
 
-```env
-MONGODB_URL=mongodb://localhost:27017
-DATABASE_NAME=leilao_insights
+### 2. Backend (FastAPI)
 ```
-
-## Executando a API
-
-1. Inicie o MongoDB:
-```bash
-mongod --dbpath /path/to/data/db
-```
-
-2. Inicie a API:
-```bash
-uvicorn backend.main:app --reload --port 8001
-```
-
-A API estará disponível em `http://localhost:8001`
-
-## Endpoints
-
-### Pré-análise
-
-- `GET /api/pre-analysis/{url}`: Retorna a análise prévia de uma URL
-- `POST /api/pre-analysis`: Inicia uma nova análise prévia
-- `GET /api/analysis-results/{url}`: Retorna os resultados da análise completa
-
-## Desenvolvimento
-
-### Estrutura do Projeto
-
-```
-.
-├── backend/
-│   ├── models/         # Modelos Pydantic
-│   ├── routers/        # Rotas da API
-│   ├── services/       # Serviços de negócio
-│   ├── utils/          # Utilitários
-│   └── main.py         # Aplicação FastAPI
-├── tests/              # Testes
-├── .env.example        # Exemplo de configuração
-├── requirements.txt    # Dependências Python
-└── README.md          # Este arquivo
-```
-
-### Testes
-
-Para executar os testes:
-
-```bash
-pytest
-```
-
-## Contribuição
-
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. Commit suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. Push para a branch (`git push origin feature/nova-feature`)
-5. Crie um Pull Request
-
-## Licença
-
-Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
