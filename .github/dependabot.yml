@@ -1,0 +1,57 @@
+# Configuração do Dependabot para atualizações de segurança e versão
+version: 2
+updates:
+  # Atualizações para dependências Python
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 10
+    target-branch: "consultations"
+    labels:
+      - "dependencies"
+      - "security"
+    commit-message:
+      prefix: "fix"
+      prefix-development: "chore"
+      include: "scope"
+    ignore:
+      # Ignorar atualizações de patch para algumas dependências
+      - dependency-name: "*"
+        update-types: ["version-update:semver-patch"]
+    groups:
+      # Agrupar atualizações de dependências relacionadas
+      development-dependencies:
+        patterns:
+          - "pytest*"
+          - "black"
+          - "flake8"
+          - "isort"
+          - "mypy"
+      production-dependencies:
+        patterns:
+          - "fastapi"
+          - "pydantic"
+          - "pymongo"
+          - "motor"
+          - "uvicorn"
+
+  # Atualizações para GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "America/Sao_Paulo"
+    open-pull-requests-limit: 5
+    target-branch: "consultations"
+    labels:
+      - "dependencies"
+      - "actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope" 
