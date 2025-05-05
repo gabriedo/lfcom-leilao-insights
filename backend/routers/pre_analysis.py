@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from typing import Optional, Dict, Any
-from models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate
-from services.analysis_service import analyze_property
-from utils.pre_analysis_logger import save_pre_analysis
+from backend.models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate
+from backend.services.analysis_service import analyze_property
+from backend.utils.pre_analysis_logger import save_pre_analysis
 import logging
 
 router = APIRouter()

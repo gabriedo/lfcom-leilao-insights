@@ -2,11 +2,11 @@ from fastapi import FastAPI, HTTPException, status, Request
 from pydantic import BaseModel, HttpUrl
 from urllib.parse import urlparse
 import httpx
-from routers import pre_analysis
+from backend.routers import pre_analysis
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
-from models.url_log import URLLog
-from config import MongoDB
+from backend.models.url_log import URLLog
+from backend.config import MongoDB
 import asyncio
 from datetime import datetime
 import aiohttp

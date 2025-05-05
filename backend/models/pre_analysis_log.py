@@ -7,7 +7,7 @@ class PyObjectId(ObjectId):
     @classmethod
     def __get_pydantic_core_schema__(cls, _source_type: Any, _handler: Any) -> dict[str, Any]:
         return {
-            'type': 'string',
+            'type': 'str',
             'description': 'ObjectId',
             'custom_validator': lambda x: ObjectId(x) if isinstance(x, str) else x
         }
