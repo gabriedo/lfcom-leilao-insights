@@ -1,19 +1,29 @@
-version: '3.8'
+version: "3.8"
 
 services:
-  api:
-    build: .
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    env_file:
+      - .env
     ports:
-      - "8001:8001"
-    environment:
-      - MONGODB_URL=mongodb://mongodb:27017
-      - DATABASE_NAME=leilao_insights
-      - ENVIRONMENT=development
-    depends_on:
-      - mongodb
+      - "8000:8000"
+    volumes:
+      - ./backend:/app/backend
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    env_file:
+      - .env
+    ports:
+      - "5173:5173"
     volumes:
       - .:/app
-    command: uvicorn backend.main:app --host 0.0.0.0 --port 8001 --reload
+    depends_on:
+      - backend
 
   mongodb:
     image: mongo:4.4
