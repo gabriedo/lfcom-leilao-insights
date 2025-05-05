@@ -2,8 +2,8 @@ import logging
 from datetime import datetime
 from typing import Optional, Dict, Any
 from urllib.parse import urlparse
-from models.pre_analysis_log import PreAnalysisLogCreate
-from config import get_database
+from backend.models.pre_analysis_log import PreAnalysisLogCreate
+from backend.config import get_database
 
 logger = logging.getLogger(__name__)
 

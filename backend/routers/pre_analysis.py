@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, BackgroundTasks
+from fastapi import APIRouter, HTTPException, BackgroundTasks, Query
 from typing import Optional, Dict, Any
 from backend.models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate
 from backend.services.analysis_service import analyze_property
@@ -24,15 +24,18 @@ async def get_pre_analysis(url: str) -> PreAnalysisLog:
         raise HTTPException(status_code=500, detail="Erro interno ao buscar análise")
 
 @router.post("/pre-analysis")
-async def create_pre_analysis(url: str, background_tasks: BackgroundTasks) -> Dict[str, Any]:
+async def create_pre_analysis(url: str = Query(..., description="URL do leilão a ser analisado"), background_tasks: BackgroundTasks = None) -> Dict[str, Any]:
     """
     Inicia uma nova análise prévia para uma URL.
     A análise é executada em background.
     """
     try:
+        logger.info(f"Recebendo requisição para análise da URL: {url}")
+        
         # Verifica se já existe uma análise
         existing_analysis = await PreAnalysisLog.find_one({"url": url})
         if existing_analysis:
+            logger.info(f"Análise já existe para URL: {url}")
             return {
                 "message": "Análise já existe",
                 "analysis_id": str(existing_analysis.id),
@@ -47,6 +50,7 @@ async def create_pre_analysis(url: str, background_tasks: BackgroundTasks) -> Di
             result=None
         )
         saved_analysis = await analysis.save()
+        logger.info(f"Nova análise criada com ID: {saved_analysis.id}")
         
         # Inicia a análise em background
         background_tasks.add_task(analyze_property, url)

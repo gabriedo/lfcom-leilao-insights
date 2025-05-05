@@ -3,7 +3,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 from typing import Dict, Any, Optional
-from utils.pre_analysis_logger import save_pre_analysis
+from backend.utils.pre_analysis_logger import save_pre_analysis
 
 logger = logging.getLogger(__name__)
 
