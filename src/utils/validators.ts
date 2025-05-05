@@ -1,6 +1,6 @@
 export const validatePropertyUrl = (url: string): boolean => {
-  // Regex para validar URLs de sites de leilão
-  const propertyUrlRegex = /^https?:\/\/(?:www\.)?[a-zA-Z0-9-]+\.(?:com\.br|com)\/imovel\/[a-zA-Z0-9-]+$/;
+  // Regex para validar URLs de qualquer domínio com .com.br ou .gov.br
+  const propertyUrlRegex = /^https?:\/\/[^ ]+\.(com\.br|gov\.br)(\/.*)?$/i;
   return propertyUrlRegex.test(url);
 };
 
@@ -11,8 +11,8 @@ export const getUrlErrorMessage = (url: string): string | null => {
     return 'A URL deve começar com http:// ou https://';
   }
   
-  if (!url.includes('.com.br/imovel/') && !url.includes('.com/imovel/')) {
-    return 'A URL deve ser de um site de leilão válido (ex: .com.br/imovel/)';
+  if (!/^https?:\/\/[^ ]+\.(com\.br|gov\.br)(\/.*)?$/i.test(url)) {
+    return 'A URL deve ser de um domínio válido (ex: .com.br ou .gov.br)';
   }
   
   return null;

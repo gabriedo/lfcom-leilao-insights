@@ -1,60 +1,123 @@
+import logging
+from typing import Optional, Dict, Any
 from datetime import datetime
-from typing import Optional, Any, Annotated
-from pydantic import BaseModel, Field, ConfigDict, GetJsonSchemaHandler, GetCoreSchemaHandler
-from pydantic.json_schema import JsonSchemaValue
-from pydantic_core import CoreSchema, core_schema
+from pydantic import BaseModel, Field, ConfigDict
 from bson import ObjectId
+from ..config import MongoDB
 
-class PyObjectId(ObjectId):
+logger = logging.getLogger(__name__)
+
+class PyObjectId(str):
     @classmethod
-    def __get_pydantic_core_schema__(
-        cls,
-        _source_type: Any,
-        _handler: GetCoreSchemaHandler
-    ) -> CoreSchema:
-        return core_schema.json_or_python_schema(
-            json_schema=core_schema.str_schema(),
-            python_schema=core_schema.union_schema([
-                core_schema.is_instance_schema(ObjectId),
-                core_schema.chain_schema([
-                    core_schema.str_schema(),
-                    core_schema.no_info_plain_validator_function(ObjectId),
-                ])
-            ]),
-            serialization=core_schema.plain_serializer_function_ser_schema(
-                lambda x: str(x), return_schema=core_schema.str_schema()
-            ),
-        )
+    def __get_validators__(cls):
+        yield cls.validate
 
-class PreAnalysisLog(BaseModel):
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    @classmethod
+    def validate(cls, v, info):
+        if isinstance(v, ObjectId):
+            return str(v)
+        if isinstance(v, str):
+            if not ObjectId.is_valid(v):
+                raise ValueError("Invalid ObjectId")
+            return str(ObjectId(v))
+        raise TypeError('ObjectId must be a string or ObjectId instance')
+
+    @classmethod
+    def __get_pydantic_json_schema__(cls, core_schema, handler):
+        json_schema = handler(core_schema)
+        json_schema.update(type="string")
+        return json_schema
+
+class PreAnalysisLogBase(BaseModel):
     url: str
     status: str
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
-    result: Optional[dict] = None
+    created_at: datetime
+    updated_at: datetime
 
+class PreAnalysisLogCreate(PreAnalysisLogBase):
+    pass
+
+class PreAnalysisLog(PreAnalysisLogBase):
+    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    
     model_config = ConfigDict(
+        populate_by_name=True,
+        arbitrary_types_allowed=True,
         json_encoders={
             ObjectId: str,
-            datetime: lambda v: v.isoformat()
-        },
-        populate_by_name=True,
-        arbitrary_types_allowed=True
+            datetime: lambda dt: dt.isoformat()
+        }
     )
-
-class PreAnalysisLogCreate(BaseModel):
-    url: str
-    status: str
-    error: Optional[str] = None
-    result: Optional[dict] = None
-
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True
-    )
-
-class PreAnalysisLogInDB(PreAnalysisLog):
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True
-    ) 
+    
+    @classmethod
+    async def find_one(cls, filter: Dict[str, Any]) -> Optional["PreAnalysisLog"]:
+        """
+        Busca um documento no MongoDB.
+        Args:
+            filter: Filtro para a busca
+        Returns:
+            PreAnalysisLog ou None se não encontrado
+        """
+        try:
+            db = MongoDB.get_database()
+            if db is None:
+                raise Exception("Database not initialized")
+            
+            collection = db.pre_analysis_logs
+            document = await collection.find_one(filter)
+            
+            if document:
+                # Converte ObjectId para string
+                document["_id"] = str(document["_id"])
+                return cls(**document)
+            return None
+            
+        except Exception as e:
+            logger.error(f"Erro ao buscar documento: {str(e)}")
+            raise
+    
+    @classmethod
+    async def save(cls, data: PreAnalysisLogCreate) -> "PreAnalysisLog":
+        """
+        Salva um documento no MongoDB.
+        Se já existir um documento com a mesma URL, atualiza-o.
+        Args:
+            data: Dados a serem salvos
+        Returns:
+            PreAnalysisLog salvo
+        """
+        try:
+            db = MongoDB.get_database()
+            if db is None:
+                raise Exception("Database not initialized")
+            
+            collection = db.pre_analysis_logs
+            
+            # Converte para dict e remove campos None
+            data_dict = data.model_dump(exclude_none=True)
+            
+            # Atualiza ou insere o documento
+            result = await collection.update_one(
+                {"url": data.url},
+                {"$set": data_dict},
+                upsert=True
+            )
+            
+            # Busca o documento atualizado
+            if result.upserted_id:
+                document = await collection.find_one({"_id": result.upserted_id})
+            else:
+                document = await collection.find_one({"url": data.url})
+            
+            if document is None:
+                raise Exception("Document not found after save")
+            
+            # Converte ObjectId para string
+            document["_id"] = str(document["_id"])
+            return cls(**document)
+            
+        except Exception as e:
+            logger.error(f"Erro ao salvar documento: {str(e)}")
+            raise 

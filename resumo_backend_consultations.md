@@ -1,58 +1,33 @@
-# ✅ Resumo Técnico — Backend de Consultas Cautelares (Branch `consultations`)
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
+from backend.routers import pre_analysis
+from backend.routers.pre_analysis import extract_basic_data_from_html
 
-**Data:** 02/05/2025 - 01:08
-**Responsável:** Gabriel
-**Status atual:** ✅ Ambiente corrigido, servidor online e rota `/pre-analyze` funcional com logging no MongoDB.
+app = FastAPI()
 
----
+app.include_router(pre_analysis.router)
 
-## ✅ O que já foi feito:
+@app.post("/pre-analyze")
+async def pre_analyze_endpoint(request: Request):
+    data = await request.json()
+    url = data.get("url")
+    if not url:
+        raise HTTPException(status_code=400, detail="URL is required")
 
-### 1. Ambiente e estrutura
-- Novo ambiente virtual com Python 3.11 criado com sucesso.
-- Dependências instaladas e configuradas no `requirements.txt`.
-- Servidor FastAPI rodando com Uvicorn na porta 8080.
-- Estrutura corrigida com importações organizadas (erro `ModuleNotFoundError` resolvido).
+    import httpx
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url)
+            response.raise_for_status()
+            html = response.text
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Failed to fetch the URL: {str(e)}")
 
-### 2. Backend de pré-análise (`/pre-analyze`)
-- Validação de domínio confiável ou suspeito usando arquivos JSON (`leiloeiros.json` e `fraudes.json`)
-- Scraping básico com `requests` + `BeautifulSoup`
-- Extração de: **título**, **valor mínimo**, **imagem**, **data do leilão**
-- Tratamento especial para domínio `sodresantoro.com.br`
-- Suporte a fallback com sugestão de contato via WhatsApp
-- Logging de cada requisição no MongoDB com: URL, domínio, status e timestamp
+    extracted_data = extract_basic_data_from_html(html, url)
 
-### 3. Logging e MongoDB
-- Modelo `URLLog` criado com validações.
-- Função `log_url` funcionando e isolada.
-- MongoDB conectado com sucesso.
-- Visualização dos logs via endpoints auxiliares (`/url-logs/`, `/dominios/`).
-- Todos os dados salvos com sucesso no MongoDB.
-- Commit final realizado com push para o GitHub (`feat: salvar progresso da pre-análise e logging`)
+    return JSONResponse(content=extracted_data)
 
----
-
-## 🚧 O que falta fazer:
-
-### 🧠 Pré-análise
-- Melhorar scraping genérico para extrair mais dados além do título (ex: endereço, área, tipo de imóvel)
-- Implementar fallback com Playwright se o `requests` falhar (bloqueio de bot)
-- Adicionar extrações para outros domínios populares além do Sodré Santoro
-
-### 📊 Logging e segurança
-- Adicionar enum para `status` no modelo
-- Adicionar índice TTL ou por timestamp para limpeza automática de logs
-- Implementar sistema de métricas (quantos confiáveis/suspeitos, etc)
-- Sanitizar entradas de URL
-
-### 🧪 Testes e validações
-- Criar testes unitários para `pre_analysis.py`
-- Criar testes de integração com FastAPI
-- Validar schema dos arquivos JSON (`leiloeiros.json`, `fraudes.json`)
-
----
-
-## 📌 Observações
-- Branch atual: `consultations` (independente do frontend principal)
-- O frontend dos imóveis Caixa ficará com Argelino
-- Prioridade agora: **finalizar backend estável da verificação cautelar da URL**
+# Exemplo de teste via terminal:
+# curl -X POST http://localhost:8080/pre-analyze \
+#   -H "Content-Type: application/json" \
+#   -d '{"url": "https://www.portalzuk.com.br/imovel/pr/curitiba/xaxim/rua-cristiano-strobel-912/32897-201775"}'

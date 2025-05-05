@@ -3,9 +3,9 @@ import os
 from dotenv import load_dotenv
 import sys
 from fastapi.testclient import TestClient
-from main import app
+from backend.main import app
 from unittest.mock import AsyncMock, MagicMock
-from config import MongoDB
+from backend.config import MongoDB
 
 # Carrega variáveis de ambiente
 load_dotenv()

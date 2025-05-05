@@ -51,7 +51,7 @@ export const analysisService = {
       console.log('URL sanitizada:', sanitizedUrl);
       
       // Primeiro, inicia a extração
-      const extractResponse = await fetch(`${API_URL}/api/pre-analysis`, {
+      const extractResponse = await fetch(`${API_URL}/api/v1/pre-analysis`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -73,7 +73,7 @@ export const analysisService = {
         console.log(`Tentativa ${attempt + 1}/${maxAttempts} de buscar resultados`);
         
         try {
-          const response = await fetch(`${API_URL}/api/pre-analysis?url=${encodeURIComponent(sanitizedUrl)}`);
+          const response = await fetch(`${API_URL}/api/v1/pre-analysis?url=${encodeURIComponent(sanitizedUrl)}`);
           
           if (response.status === 404) {
             console.log('Análise ainda não disponível, aguardando...');

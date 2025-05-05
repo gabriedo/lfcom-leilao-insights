@@ -6,7 +6,7 @@ from backend.routers import pre_analysis
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from backend.models.url_log import URLLog
-from backend.config import MongoDB
+from backend.config import MongoDB, check_port_in_use, kill_process_on_port
 import asyncio
 from datetime import datetime
 import aiohttp
@@ -17,37 +17,40 @@ import os
 from dotenv import load_dotenv
 import logging
 import sys
+import pathlib
 
-# Configuração de logging mais detalhada
-logging.basicConfig(
-    level=logging.DEBUG,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout),
-        logging.FileHandler('app.log')
-    ]
-)
-logger = logging.getLogger(__name__)
-
+# Carrega variáveis de ambiente
 load_dotenv()
 
+# Configuração de logging
+logging.basicConfig(
+    level=os.getenv("LOG_LEVEL", "INFO"),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(os.getenv("LOG_FILE", "app.log")),
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
-    title="LFCom Leilão Insights API",
-    description="API para análise de imóveis em leilão",
+    title="Leilão Insights API",
+    description="API para análise de propriedades em leilão",
     version="1.0.0"
 )
 
-# Configuração do CORS
+# Configuração CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especificar os domínios permitidos
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Inclui os routers
-app.include_router(pre_analysis.router, prefix="/api", tags=["analysis"])
+app.include_router(pre_analysis.router, prefix="/api/v1", tags=["pre-analysis"])
 
 # Exemplo estático; depois podemos carregar do Mongo
 AUTHORIZED_DOMAINS = ["innlei.org.br"]  # Adicione outros domínios conforme necessário
@@ -83,10 +86,6 @@ async def extraction_callback(data: ExtractionCallback):
         
         # Salva no MongoDB
         db = MongoDB.get_database()
-        if not db:
-            logger.error("Database não inicializado")
-            raise HTTPException(status_code=500, detail="Database não inicializado")
-            
         collection = db.extraction_results
         await collection.insert_one(result)
         logger.info(f"Dados salvos com sucesso para URL: {data.url}")
@@ -121,27 +120,34 @@ async def validate_url(payload: UrlPayload):
 
 @app.on_event("startup")
 async def startup_db_client():
+    """
+    Inicializa a conexão com o MongoDB na inicialização da aplicação.
+    """
     try:
         logger.info("Iniciando conexão com MongoDB...")
-        mongodb_url = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-        mongodb_db = os.getenv("MONGODB_DB", "leilao_insights")
-        logger.debug(f"MongoDB URL: {mongodb_url}")
-        logger.debug(f"MongoDB Database: {mongodb_db}")
+        await MongoDB.connect()
+        logger.info("Conexão com MongoDB estabelecida com sucesso")
         
-        await MongoDB.connect_to_database(mongodb_url)
-        logger.info("Conexão com MongoDB estabelecida com sucesso!")
+        # Cria índices
+        await MongoDB.create_indexes()
+        logger.info("Índices criados com sucesso")
+        
     except Exception as e:
-        logger.error(f"Erro ao conectar com MongoDB: {str(e)}", exc_info=True)
+        logger.error(f"Erro ao conectar com MongoDB: {str(e)}")
         raise
 
 @app.on_event("shutdown")
 async def shutdown_db_client():
+    """
+    Fecha a conexão com o MongoDB no encerramento da aplicação.
+    """
     try:
         logger.info("Fechando conexão com MongoDB...")
-        await MongoDB.close_database_connection()
-        logger.info("Conexão com MongoDB fechada com sucesso!")
+        await MongoDB.close()
+        logger.info("Conexão com MongoDB fechada com sucesso")
+        
     except Exception as e:
-        logger.error(f"Erro ao fechar conexão com MongoDB: {str(e)}", exc_info=True)
+        logger.error(f"Erro ao fechar conexão com MongoDB: {str(e)}")
         raise
 
 async def check_url(url: str) -> dict:
@@ -205,34 +211,49 @@ async def get_dominios():
 @app.get("/api/extraction-results/{url:path}")
 async def get_extraction_results(url: str):
     try:
-        logger.info(f"Buscando resultados para URL: {url}")
-        
         db = MongoDB.get_database()
-        if not db:
-            logger.error("Database não inicializado")
-            raise HTTPException(status_code=500, detail="Database não inicializado")
-            
-        collection = db.extraction_results
-        
-        # Busca o resultado mais recente para a URL
-        result = await collection.find_one(
-            {"url": url},
-            sort=[("timestamp", -1)]
-        )
-        
+        result = await db.extraction_results.find_one({"url": url})
         if not result:
-            logger.info(f"Nenhum resultado encontrado para URL: {url}")
-            return {"success": False, "message": "Nenhum resultado encontrado"}
-            
-        # Remove o _id do resultado
-        result.pop("_id", None)
-        logger.info(f"Resultado encontrado: {result}")
-        
-        return {"success": True, "data": result}
+            raise HTTPException(status_code=404, detail="Resultado não encontrado")
+        return result
     except Exception as e:
-        logger.error(f"Erro ao buscar resultados: {str(e)}", exc_info=True)
+        logger.error(f"Erro ao buscar resultados para URL {url}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/")
 async def root():
-    return {"message": "LFCom Leilão Insights API"} 
+    """
+    Endpoint raiz para verificar se a API está funcionando.
+    """
+    return {
+        "message": "Leilão Insights API",
+        "version": "1.0.0",
+        "status": "online"
+    }
+
+@app.get("/health")
+async def health_check():
+    """
+    Endpoint para verificar a saúde da API e suas dependências.
+    """
+    try:
+        # Verifica conexão com MongoDB
+        db = MongoDB.get_database()
+        if not db:
+            raise Exception("Database not initialized")
+            
+        # Tenta uma operação simples
+        await db.command("ping")
+        
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "version": "1.0.0"
+        }
+        
+    except Exception as e:
+        logger.error(f"Erro no health check: {str(e)}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Service unhealthy: {str(e)}"
+        ) 

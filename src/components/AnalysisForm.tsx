@@ -52,7 +52,7 @@ export default function AnalysisForm() {
     setUrlError(errorMessage);
   }, [debouncedUrl]);
 
-  const isUrlValid = !urlError && validatePropertyUrl(propertyUrl);
+  const isUrlValid = !urlError && validatePropertyUrl(debouncedUrl);
 
   const handleExtractData = async () => {
     if (!isUrlValid) {

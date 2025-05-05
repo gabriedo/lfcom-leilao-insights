@@ -1,5 +1,5 @@
 import logging
-from models.url_log import URLLogCreate
+from backend.models.url_log import URLLogCreate
 from config import MongoDB
 
 logger = logging.getLogger(__name__)

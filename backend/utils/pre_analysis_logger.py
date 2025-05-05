@@ -1,75 +1,66 @@
 import logging
+from typing import Dict, Any, Optional
+from ..models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate
 from datetime import datetime
-from typing import Optional, Dict, Any
-from urllib.parse import urlparse
-from backend.models.pre_analysis_log import PreAnalysisLogCreate
-from backend.config import get_database
 
 logger = logging.getLogger(__name__)
 
-async def save_pre_analysis(url: str, status: str, error: Optional[str] = None, result: Optional[Dict[str, Any]] = None) -> None:
+async def save_pre_analysis(url: str, result: Optional[Dict[str, Any]] = None, error: Optional[str] = None) -> None:
     """
     Salva os dados da pré-análise no MongoDB.
     
     Args:
-        url: URL do imóvel analisado
-        status: Status da análise (pending, completed, error)
-        error: Mensagem de erro, se houver
-        result: Resultado da análise, se houver
+        url: URL da propriedade analisada
+        result: Dicionário com os dados extraídos (opcional)
+        error: Mensagem de erro (opcional)
     """
     try:
-        db = get_database()
-        if db is None:
-            raise ValueError("Database connection is not available")
-            
-        collection = db.pre_analysis_logs
+        # Determina o status baseado nos parâmetros
+        status = "completed" if result and not error else "error"
         
+        # Cria o documento de log
         log_data = PreAnalysisLogCreate(
             url=url,
             status=status,
+            result=result,
             error=error,
-            result=result
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         
-        await collection.insert_one(log_data.dict())
-        logger.info(f"Pré-análise salva com sucesso para URL: {url}")
+        # Salva no MongoDB
+        await PreAnalysisLog.save(log_data)
         
+        if status == "completed":
+            logger.info(f"Pré-análise salva com sucesso para URL: {url}")
+        else:
+            logger.error(f"Erro na pré-análise para URL: {url} - {error}")
+            
     except Exception as e:
         logger.error(f"Erro ao salvar pré-análise para URL {url}: {str(e)}")
         raise
 
-async def save_pre_analysis_from_url(url: str, dados_extraidos: Dict[str, Any], status: str = "sucesso") -> None:
+async def save_pre_analysis_from_url(url: str) -> None:
     """
-    Salva uma pré-análise bem-sucedida no MongoDB.
-    Em caso de erro, apenas loga o erro e continua a execução.
+    Salva uma pré-análise apenas com a URL, sem dados extraídos.
+    Útil para registrar tentativas de análise.
+    
+    Args:
+        url: URL da propriedade a ser analisada
     """
     try:
-        # Extrai o domínio da URL
-        dominio = urlparse(url).netloc
-        
-        # Cria o objeto de log
         log_data = PreAnalysisLogCreate(
             url=url,
-            dominio=dominio,
-            dados_extraidos=dados_extraidos,
-            status=status
+            status="pending",
+            result=None,
+            error=None,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow()
         )
         
-        # Obtém a conexão com o banco
-        db = get_database()
-        if db is None:
-            raise ValueError("Database connection is not available")
-            
-        # Atualiza ou insere o documento
-        collection = db.pre_analysis_logs
-        await collection.update_one(
-            {"url": url},  # Filtro
-            {"$set": log_data.dict()},  # Dados a serem atualizados
-            upsert=True  # Cria se não existir
-        )
-        
-        logger.info(f"Pré-análise salva com sucesso para URL: {url}")
+        await PreAnalysisLog.save(log_data)
+        logger.info(f"Registro de pré-análise criado para URL: {url}")
         
     except Exception as e:
-        logger.error(f"Erro ao salvar pré-análise para URL {url}: {str(e)}")
-        # Não propaga o erro para não afetar a resposta da API 
+        logger.error(f"Erro ao criar registro de pré-análise para URL {url}: {str(e)}")
+        raise 

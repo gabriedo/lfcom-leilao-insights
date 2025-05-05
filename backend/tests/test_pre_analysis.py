@@ -99,7 +99,7 @@ async def test_extract_basic_data_from_html():
 @pytest.mark.asyncio
 async def test_log_persistence(client):
     """Testa se os logs estão sendo salvos no MongoDB"""
-    from models.url_log import URLLog
+    from backend.models.url_log import URLLog
     from config import MongoDB
     
     # Mock da resposta HTTP

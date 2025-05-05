@@ -2,6 +2,10 @@ from motor.motor_asyncio import AsyncIOMotorClient
 import os
 from dotenv import load_dotenv
 import logging
+import signal
+import sys
+import psutil
+import traceback
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -11,103 +15,142 @@ logger = logging.getLogger(__name__)
 
 # Configurações do MongoDB
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
-DATABASE_NAME = os.getenv("DATABASE_NAME", "leilao_insights")
-
-# Cliente MongoDB
-client = None
-
-async def get_database():
-    """
-    Retorna uma conexão com o banco de dados MongoDB.
-    """
-    global client
-    
-    try:
-        if client is None:
-            client = AsyncIOMotorClient(MONGODB_URL)
-            # Verifica a conexão
-            await client.admin.command('ping')
-            logger.info("Conexão com MongoDB estabelecida com sucesso")
-            
-        return client[DATABASE_NAME]
-        
-    except Exception as e:
-        logger.error(f"Erro ao conectar com MongoDB: {str(e)}")
-        return None
-
-async def close_database():
-    """
-    Fecha a conexão com o banco de dados.
-    """
-    global client
-    
-    if client is not None:
-        client.close()
-        client = None
-        logger.info("Conexão com MongoDB fechada")
+DATABASE_NAME = os.getenv("MONGODB_DB", "leilao_insights")
 
 class MongoDB:
-    client = None
-    db = None
-
+    """
+    Classe para gerenciar a conexão com o MongoDB.
+    """
+    _client = None
+    _database = None
+    
     @classmethod
-    async def connect_to_database(cls, url: str):
+    async def connect(cls) -> None:
+        """
+        Estabelece conexão com o MongoDB.
+        """
         try:
-            logger.info(f"Conectando ao MongoDB em: {url}")
-            cls.client = AsyncIOMotorClient(url)
-            # Testa a conexão
-            await cls.client.admin.command('ping')
-            logger.info("Conexão com MongoDB estabelecida com sucesso!")
-            
-            # Configura o banco de dados
-            db_name = os.getenv("MONGODB_DB", "leilao_insights")
-            cls.db = cls.client[db_name]
-            logger.info(f"Banco de dados '{db_name}' configurado")
-            
-            # Cria índices necessários
-            await cls.create_indexes()
-            
+            if cls._client is None:
+                logger.info(f"Conectando ao MongoDB: {MONGODB_URL}")
+                cls._client = AsyncIOMotorClient(MONGODB_URL)
+                cls._database = cls._client[DATABASE_NAME]
+                
+                # Testa a conexão
+                await cls._client.admin.command("ping")
+                logger.info("Conexão com MongoDB estabelecida com sucesso")
+                
         except Exception as e:
-            logger.error(f"Erro ao conectar com MongoDB: {str(e)}", exc_info=True)
+            logger.error(f"Erro ao conectar com MongoDB: {str(e)}")
             raise
-
+    
     @classmethod
-    async def create_indexes(cls):
+    async def close(cls) -> None:
+        """
+        Fecha a conexão com o MongoDB.
+        """
         try:
-            # Índice para url_logs
-            await cls.db.url_logs.create_index("url", unique=True)
-            await cls.db.url_logs.create_index("dominio")
-            await cls.db.url_logs.create_index("timestamp")
-            
-            # Índice para extraction_results
-            await cls.db.extraction_results.create_index("url")
-            await cls.db.extraction_results.create_index("timestamp")
-            
-            # Índice para pre_analysis_logs
-            await cls.db.pre_analysis_logs.create_index("url", unique=True)
-            await cls.db.pre_analysis_logs.create_index("dominio")
-            await cls.db.pre_analysis_logs.create_index("data")
-            
-            logger.info("Índices criados com sucesso")
-        except Exception as e:
-            logger.error(f"Erro ao criar índices: {str(e)}", exc_info=True)
-            raise
-
-    @classmethod
-    async def close_database_connection(cls):
-        try:
-            if cls.client:
-                cls.client.close()
-                cls.client = None
-                cls.db = None
+            if cls._client is not None:
+                logger.info("Fechando conexão com MongoDB...")
+                cls._client.close()
+                cls._client = None
+                cls._database = None
                 logger.info("Conexão com MongoDB fechada com sucesso")
+                
         except Exception as e:
-            logger.error(f"Erro ao fechar conexão com MongoDB: {str(e)}", exc_info=True)
+            logger.error(f"Erro ao fechar conexão com MongoDB: {str(e)}")
             raise
-
+    
     @classmethod
     def get_database(cls):
-        if not cls.db:
-            logger.error("Database não inicializado")
+        """
+        Retorna a instância do banco de dados.
+        """
+        if cls._database is None:
             raise Exception("Database not initialized")
-        return cls.db 
+        return cls._database
+    
+    @classmethod
+    async def create_indexes(cls) -> None:
+        """
+        Cria os índices necessários nas coleções.
+        """
+        try:
+            if cls._database is None:
+                raise Exception("Database not initialized")
+            
+            # Índices para pre_analysis_logs
+            await cls._database.pre_analysis_logs.create_index("url", unique=True)
+            await cls._database.pre_analysis_logs.create_index("status")
+            await cls._database.pre_analysis_logs.create_index("created_at")
+            
+            # Índices para extraction_results
+            await cls._database.extraction_results.create_index("url", unique=True, name="url_unique")
+            await cls._database.extraction_results.create_index("status")
+            await cls._database.extraction_results.create_index("created_at")
+            
+            # Índices para url_logs
+            await cls._database.url_logs.create_index("url", unique=True)
+            await cls._database.url_logs.create_index("status")
+            await cls._database.url_logs.create_index("created_at")
+            
+            logger.info("Índices criados com sucesso")
+            
+        except Exception as e:
+            logger.error(f"Erro ao criar índices: {str(e)}")
+            raise
+
+def check_port_in_use(port: int) -> bool:
+    """
+    Verifica se uma porta está em uso.
+    """
+    try:
+        for proc in psutil.process_iter(['pid', 'name', 'connections']):
+            try:
+                for conn in proc.connections():
+                    if conn.laddr.port == port:
+                        return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return False
+    except Exception as e:
+        error_msg = f"Erro ao verificar porta {port}: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        raise Exception(error_msg)
+
+def kill_process_on_port(port: int) -> None:
+    """
+    Mata o processo que está usando uma porta específica.
+    """
+    try:
+        for proc in psutil.process_iter(['pid', 'name', 'connections']):
+            try:
+                for conn in proc.connections():
+                    if conn.laddr.port == port:
+                        os.kill(proc.pid, signal.SIGTERM)
+                        logger.info(f"Processo {proc.pid} usando a porta {port} foi encerrado")
+                        return
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+    except Exception as e:
+        error_msg = f"Erro ao matar processo na porta {port}: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        raise Exception(error_msg)
+
+def signal_handler(signum, frame):
+    """
+    Handler para sinais de encerramento.
+    """
+    try:
+        logger.info("Recebido sinal de encerramento")
+        if MongoDB._client:
+            MongoDB._client.close()
+            logger.info("Conexão com MongoDB fechada")
+        sys.exit(0)
+    except Exception as e:
+        error_msg = f"Erro ao tratar sinal de encerramento: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        sys.exit(1)
+
+# Registra os handlers de sinal
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler) 
