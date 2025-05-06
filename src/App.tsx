@@ -30,6 +30,8 @@ import Termos from "./pages/Termos";
 import Privacidade from "./pages/Privacidade";
 import Recursos from "./pages/Recursos";
 import ConhecerMetodologia from "./pages/ConhecerMetodologia";
+import ExtractionReportPage from "./pages/ExtractionReportPage";
+import URLTestPreview from '@/tests/URLTestPreview';
 
 const queryClient = new QueryClient();
 
@@ -72,6 +74,8 @@ const App = () => {
               <Route path="/termos" element={<Termos />} />
               <Route path="/privacidade" element={<Privacidade />} />
               <Route path="/recursos" element={<Recursos />} />
+              <Route path="/extraction-report" element={<ExtractionReportPage />} />
+              <Route path="/debug/preview-test" element={<URLTestPreview />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

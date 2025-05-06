@@ -1,4 +1,3 @@
-
 import { Menu, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
@@ -109,6 +108,9 @@ export default function Navbar({ isDarkMode = false }: NavbarProps) {
             <Link to="/sobre" className={`transition-colors ${isActive('/sobre')}`}>
               Sobre
             </Link>
+            <Link to="/extraction-report" className={`transition-colors ${isActive('/extraction-report')}`}>
+              Relatório de Extração
+            </Link>
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
@@ -205,6 +207,9 @@ export default function Navbar({ isDarkMode = false }: NavbarProps) {
               </Link>
               <Link to="/sobre" className={`py-2 ${isActive('/sobre')}`}>
                 Sobre
+              </Link>
+              <Link to="/extraction-report" className={`py-2 ${isActive('/extraction-report')}`}>
+                Relatório de Extração
               </Link>
               <div className="pt-4 flex flex-col space-y-2">
                 {isAuthenticated ? (

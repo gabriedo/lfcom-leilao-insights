@@ -4,8 +4,14 @@ from urllib.parse import urlparse, urljoin
 from typing import Dict, Any, Optional
 import re
 from datetime import datetime
+from .html_utils import get_html_content, render_with_playwright
+import requests
 
 logger = logging.getLogger(__name__)
+
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
+}
 
 def extract_sodre_data(soup: BeautifulSoup, url: str) -> Dict[str, Any]:
     """
@@ -56,386 +62,260 @@ def extract_sodre_data(soup: BeautifulSoup, url: str) -> Dict[str, Any]:
         logger.error(f"Erro ao extrair dados do Sodré: {str(e)}")
         raise
 
-def extract_zuk_data(html_content: str) -> dict:
-    soup = BeautifulSoup(html_content, 'html.parser')
-    
-    # Extrair título
-    title = None
-    og_title = soup.find('meta', {'property': 'og:title'})
-    if og_title:
-        title = og_title.get('content')
-    
-    # Extrair valor mínimo do dataLayer
-    minimum_value = None
-    scripts = soup.find_all('script')
-    for script in scripts:
-        if script.string and 'dataLayer' in script.string:
-            match = re.search(r"'valorMinimo':'([^']+)'", script.string)
-            if match:
+def extract_zuk_data(html: str) -> Dict[str, Any]:
+    """Extrai dados específicos do Portal Zuk."""
+    try:
+        soup = BeautifulSoup(html, 'html.parser')
+        data = {}
+        
+        # Título
+        title_elem = soup.find('h1', class_='property-title')
+        if title_elem:
+            data['title'] = title_elem.text.strip()
+        
+        # Valor mínimo
+        price_elem = soup.find('div', class_='property-price')
+        if price_elem:
+            price_text = price_elem.text.strip()
+            price_match = re.search(r'R\$\s*([\d.,]+)', price_text)
+            if price_match:
+                data['minimum_value'] = price_match.group(1)
+        
+        # Imagem
+        image_elem = soup.find('img', class_='property-image')
+        if image_elem and image_elem.get('src'):
+            data['image'] = image_elem['src']
+        
+        # Data do leilão
+        date_elem = soup.find('div', class_='auction-date')
+        if date_elem:
+            date_text = date_elem.text.strip()
+            date_match = re.search(r'\d{2}/\d{2}/\d{4}', date_text)
+            if date_match:
                 try:
-                    value_str = match.group(1).replace('.', '').replace(',', '.')
-                    minimum_value = float(value_str)
-                    logging.info(f"Valor mínimo extraído do dataLayer: {minimum_value}")
-                except (ValueError, AttributeError) as e:
-                    logging.error(f"Erro ao converter valor mínimo: {e}")
-    
-    # Extrair imagem
-    image = None
-    og_image = soup.find('meta', {'property': 'og:image'})
-    if og_image:
-        image = og_image.get('content')
-        logging.info(f"Imagem extraída da meta tag og:image: {image}")
-    
-    # Extrair data do leilão do dataLayer
-    auction_date = None
-    for script in scripts:
-        if script.string and 'dataLayer' in script.string:
-            match = re.search(r"'leilaoData':'([^']+)'", script.string)
-            if match:
-                try:
-                    date_str = match.group(1)
-                    date_parts = date_str.split('/')
-                    if len(date_parts) == 3:
-                        auction_date = f"{date_parts[2]}-{date_parts[1]}-{date_parts[0]}T00:00:00"
-                        logging.info(f"Data do leilão extraída do dataLayer: {auction_date}")
-                except (ValueError, AttributeError) as e:
-                    logging.error(f"Erro ao converter data do leilão: {e}")
-    
-    # Se não encontrou no dataLayer, busca no bloco visual do leilão
-    if not auction_date:
-        main = soup.find('main', class_='imovel-main')
-        bloco = None
-        if main:
-            # Tenta encontrar o bloco lateral do leilão
-            bloco = main.find('div', class_='property')
-        if bloco:
-            bloco_text = bloco.get_text(separator=' ', strip=True)
-            logging.info(f"[ZUK] Texto bruto do bloco de leilão analisado: {bloco_text}")
-            # Regex tolerante: data (dd/mm/yy ou dd/mm/yyyy) seguida de 'às' e hora (hhhmm ou hh:mm)
-            date_pattern = re.compile(r'(\d{2}/\d{2}/\d{2,4})\s*às\s*(\d{2}h\d{2}|\d{2}:\d{2})', re.IGNORECASE)
-            match = date_pattern.search(bloco_text)
-            if match:
-                try:
-                    date_str = match.group(1)
-                    hour_str = match.group(2).replace('h', ':')
-                    # Ajusta ano para 20xx se necessário
-                    day, month, year = date_str.split('/')
-                    if len(year) == 2:
-                        year = '20' + year
-                    auction_date = f"{year}-{month}-{day}T{hour_str}:00"
-                    logging.info(f"Data do leilão extraída do bloco visual: {auction_date}")
+                    data['auction_date'] = datetime.strptime(date_match.group(0), '%d/%m/%Y').isoformat()
                 except Exception as e:
-                    logging.error(f"Erro ao converter data do leilão do bloco visual: {e}")
-        else:
-            logging.warning("[ZUK] Bloco visual do leilão não encontrado para extração da data.")
+                    logger.warning(f"Erro ao converter data do leilão Zuk: {e}")
+        
+        # Endereço
+        address_elem = soup.find('div', class_='property-address')
+        if address_elem:
+            address_text = address_elem.text.strip()
+            location_match = re.search(r'([^,]+),\s*([^,]+),\s*([A-Z]{2})', address_text)
+            if location_match:
+                data['address'] = location_match.group(1).strip()
+                data['city'] = location_match.group(2).strip()
+                data['state'] = location_match.group(3).strip()
+        
+        return data
+    except Exception as e:
+        logger.error(f"Erro ao extrair dados do Zuk: {e}")
+        return {}
+
+def determine_extraction_status(data: dict, fallback_used: bool) -> str:
+    """
+    Determina o status da extração baseado nos campos essenciais e uso de fallback.
     
-    # Extrair endereço, cidade e estado do dataLayer
-    address = None
-    city = None
-    state = None
-    for script in scripts:
-        if script.string and 'dataLayer' in script.string:
-            match = re.search(r"'uf':'([^']+)',\s*'cidade':'([^']+)',\s*'bairro':'([^']+)'", script.string)
-            if match:
+    Args:
+        data: Dicionário com os dados extraídos
+        fallback_used: Se o Playwright foi usado como fallback
+        
+    Returns:
+        str: Status da extração (success, fallback_used, partial, failed)
+    """
+    essential_fields = ['title', 'minBid', 'propertyType']
+    missing_fields = [field for field in essential_fields if not data.get(field)]
+    
+    if not missing_fields:
+        return "fallback_used" if fallback_used else "success"
+    elif len(missing_fields) < len(essential_fields):
+        return "partial"
+    else:
+        return "failed"
+
+def extract_zuk_data_from_url(url: str) -> dict:
+    html = requests.get(url, headers=HEADERS, timeout=10).text
+    data = extract_zuk_data(html)
+    fallback_used = False
+    
+    if is_data_incomplete(data):
+        fallback_used = True
+        html = render_with_playwright(url)
+        data = extract_zuk_data(html)
+    
+    data['extractionStatus'] = determine_extraction_status(data, fallback_used)
+    missing_fields = [field for field in ['title', 'minBid', 'propertyType'] if not data.get(field)]
+    log_extraction_event(url, data['extractionStatus'], missing_fields)
+    return data
+
+def extract_mega_data(html: str) -> Dict[str, Any]:
+    """Extrai dados específicos do Mega Leilões."""
+    try:
+        soup = BeautifulSoup(html, 'html.parser')
+        data = {}
+        
+        # Título
+        title_elem = soup.find('h1', class_='property-title')
+        if title_elem:
+            data['title'] = title_elem.text.strip()
+        
+        # Valor mínimo
+        price_elem = soup.find('div', class_='property-price')
+        if price_elem:
+            price_text = price_elem.text.strip()
+            price_match = re.search(r'R\$\s*([\d.,]+)', price_text)
+            if price_match:
+                data['minimum_value'] = price_match.group(1)
+        
+        # Imagem
+        image_elem = soup.find('img', class_='property-image')
+        if image_elem and image_elem.get('src'):
+            data['image'] = image_elem['src']
+        
+        # Data do leilão
+        date_elem = soup.find('div', class_='auction-date')
+        if date_elem:
+            date_text = date_elem.text.strip()
+            date_match = re.search(r'\d{2}/\d{2}/\d{4}', date_text)
+            if date_match:
                 try:
-                    state = match.group(1)
-                    city = match.group(2)
-                    address = match.group(3)
-                    logging.info(f"Endereço extraído do dataLayer: {address}, {city}/{state}")
-                except (ValueError, AttributeError) as e:
-                    logging.error(f"Erro ao extrair endereço: {e}")
+                    data['auction_date'] = datetime.strptime(date_match.group(0), '%d/%m/%Y').isoformat()
+                except Exception as e:
+                    logger.warning(f"Erro ao converter data do leilão Mega: {e}")
+        
+        # Endereço
+        address_elem = soup.find('div', class_='property-address')
+        if address_elem:
+            address_text = address_elem.text.strip()
+            location_match = re.search(r'([^,]+),\s*([^,]+),\s*([A-Z]{2})', address_text)
+            if location_match:
+                data['address'] = location_match.group(1).strip()
+                data['city'] = location_match.group(2).strip()
+                data['state'] = location_match.group(3).strip()
+        
+        return data
+    except Exception as e:
+        logger.error(f"Erro ao extrair dados do Mega: {e}")
+        return {}
+
+def extract_mega_data_from_url(url: str) -> dict:
+    html = requests.get(url, headers=HEADERS, timeout=10).text
+    data = extract_mega_data(html)
+    fallback_used = False
     
-    return {
-        'title': title,
-        'minimum_value': minimum_value,
-        'image': image,
-        'auction_date': auction_date,
-        'address': address,
-        'city': city,
-        'state': state
-    }
+    if is_data_incomplete(data):
+        fallback_used = True
+        html = render_with_playwright(url)
+        data = extract_mega_data(html)
+    
+    data['extractionStatus'] = determine_extraction_status(data, fallback_used)
+    missing_fields = [field for field in ['title', 'minBid', 'propertyType'] if not data.get(field)]
+    log_extraction_event(url, data['extractionStatus'], missing_fields)
+    return data
 
-def extract_mega_data(html: str) -> dict:
-    """Extrai dados básicos do Mega Leilões."""
+def extract_caixa_data(html: str) -> Dict[str, Any]:
+    """Extrai dados específicos do site da Caixa."""
     try:
         soup = BeautifulSoup(html, 'html.parser')
+        data = {}
         
         # Título
-        title = soup.find('title').text.strip()
-        if '| Mega Leilões' in title:
-            title = title.split('| Mega Leilões')[0].strip()
-            
+        title_elem = soup.find('h1', class_='property-title')
+        if title_elem:
+            data['title'] = title_elem.text.strip()
+        
         # Valor mínimo
-        min_value = None
-        # Procura em várias classes possíveis
-        for class_name in ['valor-minimo', 'valor', 'price']:
-            price_div = soup.find('div', {'class': class_name})
-            if price_div:
-                price_text = price_div.text.strip()
-                match = re.search(r'R\$\s*([\d.,]+)', price_text)
-                if match:
-                    min_value = match.group(1)
-                    break
-                    
+        price_elem = soup.find('div', class_='property-price')
+        if price_elem:
+            price_text = price_elem.text.strip()
+            price_match = re.search(r'R\$\s*([\d.,]+)', price_text)
+            if price_match:
+                data['minimum_value'] = price_match.group(1)
+        
         # Imagem
-        image = None
-        og_image = soup.find('meta', {'property': 'og:image'})
-        if og_image:
-            image = og_image.get('content')
-            
+        image_elem = soup.find('img', class_='property-image')
+        if image_elem and image_elem.get('src'):
+            data['image'] = image_elem['src']
+        
         # Data do leilão
-        auction_date = None
-        # Tenta encontrar a data em qualquer texto da página
-        date_pattern = re.compile(r'(\d{2}/\d{2}/\d{4})')
-        for text in soup.stripped_strings:
-            if 'leilão' in text.lower() or 'data' in text.lower():
-                match = date_pattern.search(text)
-                if match:
-                    try:
-                        auction_date = datetime.strptime(match.group(1), '%d/%m/%Y').isoformat()
-                        break
-                    except:
-                        pass
-                
-        # Endereço, cidade e estado
-        address = None
-        city = None
-        state = None
-
-        # Busca bloco de endereço
-        address_block = None
-        # Mega Leilões geralmente coloca o endereço em <div class="endereco"> ou similar
-        for class_name in ['endereco', 'address', 'localizacao', 'property-address']:
-            address_block = soup.find('div', class_=class_name)
-            if address_block:
-                break
-        if not address_block:
-            # fallback: busca por <span> ou <p> com cidade/estado
-            for tag in soup.find_all(['span', 'p']):
-                if tag and tag.text and 'olímpia' in tag.text.lower() and 'sp' in tag.text.upper():
-                    address_block = tag
-                    break
-        if address_block:
-            raw_text = address_block.get_text(separator=' ', strip=True)
-            logging.info(f"[MEGALEILOES] Bloco de endereço bruto: {raw_text}")
-            # Regex para cidade e estado: Olímpia - SP
-            match = re.search(r'([A-Za-zÀ-ÿ\s]+)[,\-\|\/]\s*([A-Z]{2})', raw_text)
-            if match:
-                city = match.group(1).strip().title()
-                state = match.group(2).strip().upper()
-        # fallback: tenta extrair do título se não encontrou
-        if (not city or not state) and title:
-            parts = title.split(' - ')
-            for part in reversed(parts):
-                if re.match(r'^[A-Z]{2}$', part.strip()):
-                    state = part.strip().upper()
-                elif not city and len(part.strip()) > 2:
-                    city = part.strip().title()
-        # fallback: tenta extrair da URL
-        if (not city or not state):
-            canonical = soup.find('link', {'rel': 'canonical'})
-            if canonical:
-                url_match = re.search(r'/([a-z]{2})/([^/]+)/', canonical.get('href'))
-                if url_match:
-                    state = url_match.group(1).upper()
-                    city = url_match.group(2).replace('-', ' ').title()
-        # Correção final: se cidade e estado invertidos
-        if city and state and len(city) == 2 and len(state) > 2:
-            city, state = state, city
-        # Normalização final
-        if city:
-            city = city.strip().title()
-        if state:
-            state = state.strip().upper()
-        return {
-            'title': title,
-            'minimum_value': min_value,
-            'image': image,
-            'auction_date': auction_date,
-            'address': address,
-            'city': city,
-            'state': state
-        }
+        date_elem = soup.find('div', class_='auction-date')
+        if date_elem:
+            date_text = date_elem.text.strip()
+            date_match = re.search(r'\d{2}/\d{2}/\d{4}', date_text)
+            if date_match:
+                try:
+                    data['auction_date'] = datetime.strptime(date_match.group(0), '%d/%m/%Y').isoformat()
+                except Exception as e:
+                    logger.warning(f"Erro ao converter data do leilão Caixa: {e}")
+        
+        # Endereço
+        address_elem = soup.find('div', class_='property-address')
+        if address_elem:
+            address_text = address_elem.text.strip()
+            location_match = re.search(r'([^,]+),\s*([^,]+),\s*([A-Z]{2})', address_text)
+            if location_match:
+                data['address'] = location_match.group(1).strip()
+                data['city'] = location_match.group(2).strip()
+                data['state'] = location_match.group(3).strip()
+        
+        return data
     except Exception as e:
-        logger.error(f"Erro ao extrair dados do Mega Leilões: {str(e)}")
-        return None
+        logger.error(f"Erro ao extrair dados da Caixa: {e}")
+        return {}
 
-def extract_caixa_data(html: str) -> dict:
-    """Extrai dados básicos do site da Caixa."""
+def extract_caixa_data_from_url(url: str) -> dict:
+    html = requests.get(url, headers=HEADERS, timeout=10).text
+    data = extract_caixa_data(html)
+    fallback_used = False
+    
+    if is_data_incomplete(data):
+        fallback_used = True
+        html = render_with_playwright(url)
+        data = extract_caixa_data(html)
+    
+    data['extractionStatus'] = determine_extraction_status(data, fallback_used)
+    missing_fields = [field for field in ['title', 'minBid', 'propertyType'] if not data.get(field)]
+    log_extraction_event(url, data['extractionStatus'], missing_fields)
+    return data
+
+def extract_basic_data_from_html(html: str, url: str) -> Dict[str, Any]:
+    """Extrai dados básicos do HTML da página"""
+    if not html:
+        logger.error("HTML vazio recebido para extração")
+        return {}
+        
     try:
         soup = BeautifulSoup(html, 'html.parser')
+        domain = urlparse(url).netloc
         
-        # Título
-        title = None
-        h5 = soup.find('h5', {'style': 'margin-bottom: 0.5rem; color: #006bae;'})
-        if h5:
-            title = h5.text.strip()
-            
-        # Valor mínimo
-        min_value = None
-        content = soup.find('div', {'class': 'content'})
-        if content:
-            p = content.find('p')
-            if p:
-                match = re.search(r'Valor mínimo de venda 1º Leilão: R\$ ([\d.,]+)', p.text)
-                if match:
-                    min_value = match.group(1)
-                    
-        # Imagem
-        image = None
-        # Procura em várias classes possíveis
-        for class_name in ['preview', 'img-imovel', 'foto']:
-            img = soup.find('img', {'class': class_name})
-            if img:
-                image = img.get('src')
-                if image and not image.startswith('http'):
-                    image = f"https://venda-imoveis.caixa.gov.br/{image.lstrip('/')}"
-                break
-                
-        # Se não encontrou a imagem, procura na galeria
-        if not image:
-            gallery = soup.find('div', {'class': 'thumbnails'})
-            if gallery:
-                img = gallery.find('img')
-                if img:
-                    image = img.get('src')
-                    if image and not image.startswith('http'):
-                        image = f"https://venda-imoveis.caixa.gov.br/{image.lstrip('/')}"
-                
-        # Data do leilão
-        auction_date = None
-        # Tenta encontrar a data em qualquer texto da página
-        date_pattern = re.compile(r'(\d{2}/\d{2}/\d{4})')
-        for text in soup.stripped_strings:
-            if 'leilão' in text.lower() or 'data' in text.lower():
-                match = date_pattern.search(text)
-                if match:
-                    try:
-                        auction_date = datetime.strptime(match.group(1), '%d/%m/%Y').isoformat()
-                        break
-                    except:
-                        pass
-                
-        # Endereço, cidade e estado
-        address = None
-        city = None
-        state = None
-        # Busca bloco de endereço
-        # Normalmente está em <span> com 'Endereço:'
-        for span in soup.find_all('span'):
-            text = span.text.strip()
-            if text.startswith('Endereço:'):
-                address = text.replace('Endereço:', '').strip()
-                break
-        # fallback: busca em <p> ou <div> se não encontrou
-        if not address:
-            for tag in soup.find_all(['p', 'div']):
-                if tag and tag.text and 'Endereço:' in tag.text:
-                    address = tag.text.split('Endereço:')[-1].strip()
-                    break
-        # Normalização final do endereço
-        if address:
-            address = address.replace('\n', ' ').replace('  ', ' ').strip()
-        # Cidade e estado
-        breadcrumb = soup.find('p', {'class': 'breadcrumb'})
-        if breadcrumb:
-            text = breadcrumb.text.strip()
-            match = re.search(r'([^/]+)/([A-Z]{2})', text)
-            if match:
-                city = match.group(1).strip()
-                state = match.group(2)
-        # Tenta extrair o endereço e cidade/estado de spans
-        spans = soup.find_all('span')
-        for span in spans:
-            text = span.text.strip()
-            if 'Comarca:' in text:
-                comarca = text.replace('Comarca:', '').strip()
-                if '-' in comarca:
-                    city, state = comarca.split('-')
-                    city = city.strip()
-                    state = state.strip()
-        return {
-            'title': title,
-            'minimum_value': min_value,
-            'image': image,
-            'auction_date': auction_date,
-            'address': address,
-            'city': city,
-            'state': state
-        }
-    except Exception as e:
-        logger.error(f"Erro ao extrair dados da Caixa: {str(e)}")
-        return None
-
-def extract_basic_data_from_html(html: str, url: str) -> dict:
-    """Extrai dados básicos do HTML baseado no domínio."""
-    try:
-        if 'portalzuk.com.br' in url:
-            return extract_zuk_data(html)
-        elif 'megaleiloes.com.br' in url:
-            return extract_mega_data(html)
-        elif 'venda-imoveis.caixa.gov.br' in url:
-            return extract_caixa_data(html)
+        logger.info(f"Iniciando extração de dados para domínio: {domain}")
+        
+        # Extrair dados específicos por domínio
+        if 'portalzuk.com.br' in domain:
+            data = extract_zuk_data(html)
+        elif 'megaleiloes.com.br' in domain:
+            data = extract_mega_data(html)
+        elif 'venda-imoveis.caixa.gov.br' in domain:
+            data = extract_caixa_data(html)
         else:
-            # Extrator genérico para outros domínios
-            soup = BeautifulSoup(html, 'html.parser')
+            logger.warning(f"Domínio não suportado: {domain}")
+            data = {}
             
-            # Título
-            title = soup.find('title').text.strip()
-            
-            # Valor mínimo
-            min_value = None
-            price_pattern = re.compile(r'R\$\s*([\d.,]+)')
-            for text in soup.stripped_strings:
-                match = price_pattern.search(text)
-                if match:
-                    min_value = match.group(1)
-                    break
-                    
-            # Imagem
-            image = None
-            og_image = soup.find('meta', {'property': 'og:image'})
-            if og_image:
-                image = og_image.get('content')
+        # Validar campos obrigatórios
+        missing_fields = []
+        required_fields = ['title', 'minBid', 'propertyType', 'images']
+        for field in required_fields:
+            if not data.get(field):
+                missing_fields.append(field)
                 
-            # Data do leilão
-            auction_date = None
-            date_pattern = re.compile(r'\d{2}/\d{2}/\d{4}')
-            for text in soup.stripped_strings:
-                match = date_pattern.search(text)
-                if match:
-                    try:
-                        auction_date = datetime.strptime(match.group(0), '%d/%m/%Y').isoformat()
-                        break
-                    except:
-                        pass
-                        
-            # Endereço, cidade e estado
-            address = None
-            city = None
-            state = None
+        if missing_fields:
+            logger.warning(f"Campos faltando: {', '.join(missing_fields)}")
             
-            location_pattern = re.compile(r'([^,]+),\s*([^,]+),\s*([A-Z]{2})')
-            for text in soup.stripped_strings:
-                match = location_pattern.search(text)
-                if match:
-                    address = match.group(1).strip()
-                    city = match.group(2).strip()
-                    state = match.group(3).strip()
-                    break
-                    
-            return {
-                'title': title,
-                'minimum_value': min_value,
-                'image': image,
-                'auction_date': auction_date,
-                'address': address,
-                'city': city,
-                'state': state
-            }
+        return data
+        
     except Exception as e:
-        logger.error(f"Erro ao extrair dados básicos: {str(e)}")
-        return None
+        logger.error(f"Erro ao extrair dados do HTML: {str(e)}")
+        return {}
 
 def extract_generic_data(soup: BeautifulSoup, url: str) -> Dict[str, Any]:
     """
@@ -533,3 +413,6 @@ def extract_generic_data(soup: BeautifulSoup, url: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f"Erro ao extrair dados genéricos: {str(e)}")
         raise 
+
+def is_data_incomplete(data: dict) -> bool:
+    return not data.get("title") or not data.get("minBid") or not data.get("propertyType") 

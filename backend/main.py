@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, status, Request
 from pydantic import BaseModel, HttpUrl
 from urllib.parse import urlparse
 import httpx
-from backend.routers import pre_analysis
+from backend.routers import pre_analysis, extraction_report
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from backend.models.url_log import URLLog
@@ -18,6 +18,7 @@ from dotenv import load_dotenv
 import logging
 import sys
 import pathlib
+from services.analysis_service import analyze_property
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -51,6 +52,7 @@ app.add_middleware(
 
 # Inclui os routers
 app.include_router(pre_analysis.router, prefix="/api/v1", tags=["pre-analysis"])
+app.include_router(extraction_report.router, prefix="/api/v1", tags=["extraction-report"])
 
 # Exemplo estático; depois podemos carregar do Mongo
 AUTHORIZED_DOMAINS = ["innlei.org.br"]  # Adicione outros domínios conforme necessário
@@ -256,4 +258,25 @@ async def health_check():
         raise HTTPException(
             status_code=503,
             detail=f"Service unhealthy: {str(e)}"
-        ) 
+        )
+
+class PropertyRequest(BaseModel):
+    url: HttpUrl
+
+@app.post("/analyze")
+async def analyze_property_endpoint(request: PropertyRequest) -> Dict[str, Any]:
+    """
+    Analisa uma propriedade a partir da URL fornecida.
+    """
+    try:
+        logger.info(f"Recebida requisição para analisar: {request.url}")
+        result = analyze_property(str(request.url))
+        
+        if result.get('status') == 'error':
+            raise HTTPException(status_code=500, detail=result.get('error', 'Erro desconhecido'))
+            
+        return result
+        
+    except Exception as e:
+        logger.error(f"Erro ao processar requisição: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) 

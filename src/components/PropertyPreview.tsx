@@ -1,105 +1,69 @@
-import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MapPin, Calendar, FileText, Download, ArrowUpRight, Building2, Home, Landmark } from "lucide-react";
-import { format, isValid } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { ExtractedPropertyData } from "@/types/property";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, Image as ImageIcon, MessageCircle } from "lucide-react";
-
-// Função auxiliar para formatar moeda
-const formatCurrency = (value: string) => {
-  try {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(Number(value));
-  } catch {
-    return value;
-  }
-};
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertCircle, Building2, Home, Landmark, RefreshCw } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface PropertyPreviewProps {
-  data: ExtractedPropertyData | null;
-  isLoading?: boolean;
-  error?: string | null;
-  onConfirm?: () => void;
+  id: string;
+  title: string;
+  address: string;
+  city: string;
+  state: string;
+  minBid: string;
+  evaluatedValue: string;
+  propertyType: string;
+  auctionType: string;
+  auctionDate: string;
+  description: string;
+  images: string[];
+  documents: any[];
+  auctions: any[];
+  extractionStatus?: 'success' | 'fallback_used' | 'partial' | 'failed';
+  onRefresh?: () => void;
 }
 
-console.log("PropertyPreview.tsx iniciado");
+const statusColors = {
+  success: 'default',
+  fallback_used: 'secondary',
+  partial: 'outline',
+  failed: 'destructive'
+} as const;
 
-export default function PropertyPreview({ data, isLoading = false, error, onConfirm }: PropertyPreviewProps) {
-  console.log("PropertyPreview data:", data);
-  console.log("PropertyPreview isLoading:", isLoading);
-  console.log("PropertyPreview error:", error);
+const statusLabels = {
+  success: 'Sucesso',
+  fallback_used: 'Fallback',
+  partial: 'Parcial',
+  failed: 'Falha'
+} as const;
 
-  if (isLoading) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>
-            <Skeleton className="h-6 w-3/4" />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Skeleton className="h-48 w-full" />
-            </div>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-1/3" />
-                <Skeleton className="h-4 w-2/3" />
-              </div>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>
-          {error}
-        </AlertDescription>
-      </Alert>
-    );
-  }
-
-  if (!data) {
-    return null;
-  }
-
-  const {
-    propertyType = '',
-    address = '',
-    documents = [],
-    images = []
-  } = data;
-
+const PropertyPreview: React.FC<PropertyPreviewProps> = ({
+  id,
+  title,
+  address,
+  city,
+  state,
+  minBid,
+  evaluatedValue,
+  propertyType,
+  auctionType,
+  auctionDate,
+  description,
+  images,
+  documents,
+  auctions,
+  extractionStatus = 'success',
+  onRefresh
+}) => {
   const getPropertyTypeIcon = () => {
-    switch (propertyType?.toLowerCase()) {
+    switch (propertyType.toLowerCase()) {
       case "apartment":
         return <Building2 className="h-4 w-4" />;
       case "house":
         return <Home className="h-4 w-4" />;
-      case "land":
+      case "commercial":
         return <Landmark className="h-4 w-4" />;
       default:
         return <Home className="h-4 w-4" />;
@@ -107,11 +71,13 @@ export default function PropertyPreview({ data, isLoading = false, error, onConf
   };
 
   const getPropertyTypeLabel = () => {
-    switch (propertyType?.toLowerCase()) {
+    switch (propertyType.toLowerCase()) {
       case "apartment":
         return "Apartamento";
       case "house":
         return "Casa";
+      case "commercial":
+        return "Comercial";
       case "land":
         return "Terreno";
       default:
@@ -119,117 +85,89 @@ export default function PropertyPreview({ data, isLoading = false, error, onConf
     }
   };
 
-  // Função para formatar o tipo de leilão
-  const formatAuctionType = (type?: string) => {
-    if (!type) return 'Não informado';
-    const types: { [key: string]: string } = {
-      'judicial': 'Leilão Judicial',
-      'extrajudicial': 'Leilão Extrajudicial',
-      'bank': 'Venda Direta (Banco)',
-      'other': 'Outro'
-    };
-    return types[type.toLowerCase()] || type;
-  };
-
-  // Função para formatar a data do leilão
-  const formatAuctionDate = (dateStr?: string) => {
-    if (!dateStr) return 'Não informado';
-    try {
-      const date = new Date(dateStr);
-      if (!isValid(date)) {
-        console.warn('Data inválida:', dateStr);
-        return 'Data inválida';
-      }
-      return format(date, "PPP", { locale: ptBR });
-    } catch (error) {
-      console.error('Erro ao formatar data:', error);
-      return 'Data inválida';
-    }
-  };
-
-  const formatDate = (dateStr: string) => {
-    try {
-      const date = new Date(dateStr);
-      return format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-    } catch {
-      return dateStr;
-    }
-  };
+  if (extractionStatus === 'failed') {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          {description}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <Card className="w-full">
-      <CardHeader>
-        <CardTitle className="text-xl font-semibold">
-          {data.propertyType || 'Imóvel'}
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-2xl font-bold">
+          {title || "Imóvel sem título"}
         </CardTitle>
-        {data.address && (
-          <p className="text-sm text-muted-foreground">{data.address}</p>
-        )}
+        <div className="flex items-center space-x-2">
+          {extractionStatus && (
+            <Badge
+              variant={statusColors[extractionStatus]}
+            >
+              {statusLabels[extractionStatus]}
+            </Badge>
+          )}
+          {onRefresh && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onRefresh}
+              title="Atualizar dados"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        {data.images && data.images.length > 0 && (
+        {images.length > 0 && (
           <div className="relative aspect-video rounded-lg overflow-hidden">
-            <img 
-              src={data.images[0]} 
-              alt={data.propertyType || 'Imóvel'} 
+            <img
+              src={images[0]}
+              alt={title}
               className="w-full h-full object-cover"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = 'https://via.placeholder.com/800x450?text=Imagem+não+disponível';
-              }}
             />
           </div>
         )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {data.minBid && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Informações Básicas</h3>
             <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Lance Mínimo</p>
-              <p className="text-2xl font-bold text-primary">
-                {formatCurrency(data.minBid)}
-              </p>
+              <p><strong>Endereço:</strong> {address || "Endereço não disponível"}</p>
+              <p><strong>Cidade:</strong> {city || "Cidade não disponível"} - {state || "Estado não disponível"}</p>
+              <p><strong>Tipo:</strong> {getPropertyTypeLabel()}</p>
+              <p><strong>Lance Mínimo:</strong> {minBid || "R$ 0,00"}</p>
+              <p><strong>Valor Avaliado:</strong> {evaluatedValue || "Não disponível"}</p>
             </div>
-          )}
-          
-          {data.auctionDate && (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">Data do Leilão</p>
-              <p className="text-lg font-medium">
-                {formatDate(data.auctionDate)}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {data.description && (
-          <div className="space-y-2">
-            <p className="text-sm font-medium">Descrição</p>
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-              {data.description}
-            </p>
           </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Button 
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Informações do Leilão</h3>
+            <div className="space-y-2">
+              <p><strong>Tipo de Leilão:</strong> {auctionType || "Não especificado"}</p>
+              <p><strong>Data do Leilão:</strong> {auctionDate || "Data não disponível"}</p>
+              <p><strong>Documentos:</strong> {documents.length} disponíveis</p>
+              <p><strong>Lances:</strong> {auctions.length} registrados</p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Descrição</h3>
+          <p className="text-gray-600">{description || "Sem descrição disponível"}</p>
+        </div>
+        <Link to={`/property/${id}`}>
+          <Button
             size="lg" 
-            className="flex-1"
-            onClick={onConfirm}
+            className="flex-1 w-full"
           >
             Consultar Imóvel
           </Button>
-          
-          <a
-            href="https://wa.me/5511999999999"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 text-sm text-muted-foreground hover:text-primary transition-colors"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Precisa de ajuda?
-          </a>
-        </div>
+        </Link>
       </CardContent>
     </Card>
   );
-} 
+};
+
+export default PropertyPreview; 
