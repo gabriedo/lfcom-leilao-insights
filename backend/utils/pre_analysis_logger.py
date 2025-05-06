@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Any, Optional
 from ..models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate
 from datetime import datetime
+from ..config import MongoDB
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ async def save_pre_analysis(url: str, result: Optional[Dict[str, Any]] = None, e
         error: Mensagem de erro (opcional)
     """
     try:
-        db = PreAnalysisLog.__bases__[0].__dict__['get_database']()
+        db = MongoDB.get_database()
         collection = db.pre_analysis_logs
         existing = await collection.find_one({"url": url})
         previous = existing.get("result", {}) if existing else {}

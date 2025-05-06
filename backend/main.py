@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fastapi import FastAPI, HTTPException, status, Request
 from pydantic import BaseModel, HttpUrl
 from urllib.parse import urlparse
@@ -13,12 +16,10 @@ import aiohttp
 from bs4 import BeautifulSoup
 import re
 from typing import List, Optional, Dict, Any
-import os
 from dotenv import load_dotenv
 import logging
-import sys
 import pathlib
-from services.analysis_service import analyze_property
+from backend.services.analysis_service import analyze_property
 
 # Carrega variáveis de ambiente
 load_dotenv()
@@ -121,36 +122,17 @@ async def validate_url(payload: UrlPayload):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.on_event("startup")
-async def startup_db_client():
-    """
-    Inicializa a conexão com o MongoDB na inicialização da aplicação.
-    """
-    try:
-        logger.info("Iniciando conexão com MongoDB...")
-        await MongoDB.connect()
-        logger.info("Conexão com MongoDB estabelecida com sucesso")
-        
-        # Cria índices
-        await MongoDB.create_indexes()
-        logger.info("Índices criados com sucesso")
-        
-    except Exception as e:
-        logger.error(f"Erro ao conectar com MongoDB: {str(e)}")
-        raise
+async def startup_event():
+    logger.info("Iniciando conexão com MongoDB...")
+    await MongoDB.connect()
+    await MongoDB.create_indexes()
+    logger.info("Conexão com MongoDB estabelecida com sucesso")
 
 @app.on_event("shutdown")
-async def shutdown_db_client():
-    """
-    Fecha a conexão com o MongoDB no encerramento da aplicação.
-    """
-    try:
-        logger.info("Fechando conexão com MongoDB...")
-        await MongoDB.close()
-        logger.info("Conexão com MongoDB fechada com sucesso")
-        
-    except Exception as e:
-        logger.error(f"Erro ao fechar conexão com MongoDB: {str(e)}")
-        raise
+async def shutdown_event():
+    logger.info("Fechando conexão com MongoDB...")
+    await MongoDB.close()
+    logger.info("Conexão com MongoDB fechada com sucesso")
 
 async def check_url(url: str) -> dict:
     try:

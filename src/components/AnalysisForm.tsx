@@ -42,6 +42,7 @@ export default function AnalysisForm() {
   const [error, setError] = useState<string | null>(null);
   const [pollingAttempt, setPollingAttempt] = useState(0);
   const [maxPollingAttempts] = useState(15); // 30 segundos total
+  const [isDataReady, setIsDataReady] = useState(false);
 
   // Aplica debounce na URL para validação
   const debouncedUrl = useDebounce(propertyUrl, 500);
@@ -51,6 +52,14 @@ export default function AnalysisForm() {
     const errorMessage = getUrlErrorMessage(debouncedUrl);
     setUrlError(errorMessage);
   }, [debouncedUrl]);
+
+  // Reset do estado quando a URL muda
+  useEffect(() => {
+    setPropertyData(null);
+    setExtractionResult(null);
+    setError(null);
+    setIsDataReady(false);
+  }, [propertyUrl]);
 
   const isUrlValid = !urlError && validatePropertyUrl(debouncedUrl);
 
@@ -70,23 +79,14 @@ export default function AnalysisForm() {
     setProgress(0);
     setError(null);
     setPollingAttempt(0);
+    setIsDataReady(false);
     
     try {
       console.log('Iniciando extração para:', propertyUrl);
       
-      // Verificar cache
-      const cachedData = cacheService.get(propertyUrl);
-      if (cachedData) {
-        console.log('Dados encontrados no cache');
-        setPropertyData(cachedData);
-        setExtractionResult({
-          success: true,
-          message: "Dados recuperados do cache",
-          data: cachedData
-        });
-        setProgress(100);
-        return;
-      }
+      // Sempre força nova análise, ignorando cache local
+      // (Opcional: pode-se limpar o cache local para evitar inconsistência)
+      cacheService.remove(propertyUrl);
 
       // Atualizar o progresso a cada segundo
       const progressInterval = setInterval(() => {
@@ -98,8 +98,9 @@ export default function AnalysisForm() {
         setPollingAttempt(prev => Math.min(prev + 1, maxPollingAttempts));
       }, 2000);
 
+      // Chama o backend com force=true
       const result = await fetchWithRetry(() => 
-        analysisService.extractDataFromUrl(propertyUrl)
+        analysisService.extractDataFromUrl(propertyUrl, { force: true })
       );
       
       console.log('Resultado da extração:', result);
@@ -137,6 +138,7 @@ export default function AnalysisForm() {
           message: "Dados extraídos com sucesso!",
           data: parsed.data
         });
+        setIsDataReady(true);
         
         toast({
           title: "Extração concluída",
@@ -153,6 +155,7 @@ export default function AnalysisForm() {
         success: false,
         message: errorMessage,
       });
+      setIsDataReady(false);
       
       toast({
         title: "Erro na extração",
@@ -187,59 +190,70 @@ export default function AnalysisForm() {
             onChange={(e) => setPropertyUrl(e.target.value)}
             disabled={extracting}
             className={`flex-1 ${urlError ? 'border-red-500' : ''}`}
+            aria-label="URL do imóvel"
           />
           <Button 
             type="button" 
             onClick={handleExtractData} 
             disabled={extracting || !isUrlValid} 
             className="whitespace-nowrap"
+            aria-busy={extracting}
           >
-            {extracting ? 
+            {extracting ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 Analisando...
-              </> : 
+              </>
+            ) : (
               <>
                 <LinkIcon className="h-4 w-4 mr-2" />
-                Analisar Imóvel
+                Analisar
               </>
-            }
+            )}
           </Button>
         </div>
         {urlError && (
-          <p className="text-sm text-red-500 mt-1">
-            {urlError}
-          </p>
+          <Alert variant="destructive">
+            <AlertDescription>{urlError}</AlertDescription>
+          </Alert>
         )}
       </div>
-      
+
       {extracting && (
         <div className="space-y-2">
-          <Progress value={progress} className="w-full" />
-          <p className="text-sm text-muted-foreground text-center">
-            {pollingAttempt > 0 ? (
-              `Buscando dados do imóvel... Tentativa ${pollingAttempt}/${maxPollingAttempts}`
-            ) : (
-              `Iniciando análise... ${progress}%`
-            )}
+          <Progress value={progress} />
+          <p className="text-sm text-gray-500 text-center">
+            {progress < 100 ? "Extraindo dados do imóvel..." : "Finalizando..."}
           </p>
         </div>
       )}
-      
-      {extractionResult && !extracting && (
-        <Alert variant={extractionResult.success ? "default" : "destructive"}>
-          <AlertDescription>
-            {extractionResult.message}
-          </AlertDescription>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      
-      <PropertyPreview 
-        data={propertyData} 
-        isLoading={extracting}
-        error={error}
-        onConfirm={handleConfirm}
-      />
+
+      {isDataReady && propertyData && (
+        <PropertyPreview
+          id={propertyData.id || "temp-id"}
+          title={propertyData.title || "Título não disponível"}
+          address={propertyData.address || ""}
+          city={propertyData.city || ""}
+          state={propertyData.state || ""}
+          minBid={propertyData.minBid || ""}
+          evaluatedValue={propertyData.evaluatedValue || ""}
+          propertyType={propertyData.propertyType || ""}
+          auctionType={propertyData.auctionType || ""}
+          auctionDate={propertyData.auctionDate || ""}
+          description={propertyData.description || ""}
+          images={Array.isArray(propertyData.images) ? propertyData.images : []}
+          documents={Array.isArray(propertyData.documents) ? propertyData.documents : []}
+          auctions={Array.isArray(propertyData.auctions) ? propertyData.auctions : []}
+          extractionStatus={propertyData.extractionStatus || "success"}
+          onRefresh={handleExtractData}
+        />
+      )}
     </div>
   );
 }

@@ -9,6 +9,10 @@ export const DocumentSchema = z.object({
 
 // Schema para dados do imóvel
 export const PropertyDataSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().optional(),
+  city: z.string().optional(),
+  state: z.string().optional(),
   propertyType: z.string().optional(),
   auctionType: z.string().optional(),
   minBid: z.string().optional(),
@@ -17,6 +21,8 @@ export const PropertyDataSchema = z.object({
   auctionDate: z.string().optional(),
   description: z.string().optional(),
   images: z.array(z.string()).optional(),
+  auctions: z.array(z.any()).optional(),
+  extractionStatus: z.enum(['success', 'fallback_used', 'partial', 'failed']).optional(),
   documents: z.preprocess(
     (docs: unknown) => {
       if (!Array.isArray(docs)) return undefined;

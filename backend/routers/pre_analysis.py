@@ -11,6 +11,7 @@ import pprint
 import re
 import requests
 from fastapi.responses import Response
+from ..services.extractors import normalize_url
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -49,21 +50,37 @@ def mapToFrontend(raw):
     }
 
 @router.get("/pre-analysis/{url:path}")
-async def get_pre_analysis(url: str) -> Dict[str, Any]:
+async def get_pre_analysis(url: str, force: bool = False) -> Dict[str, Any]:
     """
     Obtém a pré-análise de uma propriedade em leilão.
     Se não existir, inicia uma nova análise em background.
+    Se force=True, força nova análise e sobrescreve o cache.
     """
     try:
-        # Normaliza a URL (remove query params irrelevantes e trailing slashes)
-        parsed = urlparse(url)
-        normalized_url = urlunparse(parsed._replace(query="", fragment="")).rstrip("/")
+        normalized_url = normalize_url(url)
         logger.info(f"[PRE-ANALYSIS] URL recebida: {url}")
         logger.info(f"[PRE-ANALYSIS] URL normalizada: {normalized_url}")
-
         filtro = {"url": normalized_url}
         logger.info(f"[PRE-ANALYSIS] Filtro para find_one: {filtro}")
-
+        if force:
+            logger.info("[PRE-ANALYSIS] Forçando nova extração por parâmetro force=True")
+            await save_pre_analysis_from_url(normalized_url)
+            try:
+                await analyze_property(normalized_url)
+            except Exception as e:
+                logger.error(f"[PRE-ANALYSIS] Erro ao executar analyze_property: {str(e)}\n{traceback.format_exc()}")
+            analysis = await PreAnalysisLog.find_one(filtro)
+            if analysis:
+                data = analysis.model_dump()
+                data.pop("_id", None)
+                data.pop("__v", None)
+                raw = data.get("result") or data.get("data") or data
+                mapped = mapToFrontend(raw)
+                logger.info("[PRE-ANALYSIS] Dados enviados ao frontend (force): %s", pprint.pformat(mapped))
+                return mapped
+            else:
+                logger.error("[PRE-ANALYSIS] Nova extração falhou para URL: %s", normalized_url)
+                return {"url": normalized_url, "status": "failed", "message": "Não foi possível extrair os dados."}
         try:
             analysis = await PreAnalysisLog.find_one(filtro)
         except Exception as e:
@@ -77,8 +94,32 @@ async def get_pre_analysis(url: str) -> Dict[str, Any]:
             data.pop("__v", None)
             raw = data.get("result") or data.get("data") or data
             mapped = mapToFrontend(raw)
-            logger.info("[PRE-ANALYSIS] Dados enviados ao frontend: %s", pprint.pformat(mapped))
-            return mapped
+            # Verifica campos obrigatórios
+            if not mapped.get("title") or not mapped.get("minBid") or not mapped.get("propertyType"):
+                logger.warning("[RETRY] Dados incompletos detectados. Forçando nova extração...")
+                logger.info("[PRE-ANALYSIS] Iniciando nova extração para URL: %s", normalized_url)
+                await save_pre_analysis_from_url(normalized_url)
+                try:
+                    await analyze_property(normalized_url)
+                except Exception as e:
+                    logger.error(f"[PRE-ANALYSIS] Erro ao executar analyze_property: {str(e)}\n{traceback.format_exc()}")
+                # Buscar novamente após extração
+                analysis = await PreAnalysisLog.find_one(filtro)
+                if analysis:
+                    data = analysis.model_dump()
+                    data.pop("_id", None)
+                    data.pop("__v", None)
+                    raw = data.get("result") or data.get("data") or data
+                    mapped = mapToFrontend(raw)
+                    logger.info("[PRE-ANALYSIS] Dados enviados ao frontend (nova extração): %s", pprint.pformat(mapped))
+                    return mapped
+                else:
+                    logger.error("[PRE-ANALYSIS] Nova extração falhou para URL: %s", normalized_url)
+                    return {"url": normalized_url, "status": "failed", "message": "Não foi possível extrair os dados."}
+            else:
+                logger.info("[PRE-ANALYSIS] Recuperado do banco")
+                logger.info("[PRE-ANALYSIS] Dados enviados ao frontend: %s", pprint.pformat(mapped))
+                return mapped
         else:
             logger.info(f"[PRE-ANALYSIS] Nenhuma análise encontrada para esta URL: {normalized_url}")
 
@@ -168,21 +209,37 @@ async def get_analysis_results(url: str) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail="Erro interno ao buscar resultados")
 
 @router.get("/pre-analysis")
-async def get_pre_analysis_query(url: str = Query(..., description="URL da propriedade para análise")) -> Dict[str, Any]:
+async def get_pre_analysis_query(url: str = Query(..., description="URL da propriedade para análise"), force: bool = False) -> Dict[str, Any]:
     """
     Obtém a pré-análise de uma propriedade em leilão via query param.
     Se não existir, inicia uma nova análise em background.
+    Se force=True, força nova análise e sobrescreve o cache.
     """
     try:
-        # Normaliza a URL (remove query params irrelevantes e trailing slashes)
-        parsed = urlparse(url)
-        normalized_url = urlunparse(parsed._replace(query="", fragment="")).rstrip("/")
+        normalized_url = normalize_url(url)
         logger.info(f"[PRE-ANALYSIS] URL recebida: {url}")
         logger.info(f"[PRE-ANALYSIS] URL normalizada: {normalized_url}")
-
         filtro = {"url": normalized_url}
         logger.info(f"[PRE-ANALYSIS] Filtro para find_one: {filtro}")
-
+        if force:
+            logger.info("[PRE-ANALYSIS] Forçando nova extração por parâmetro force=True")
+            await save_pre_analysis_from_url(normalized_url)
+            try:
+                await analyze_property(normalized_url)
+            except Exception as e:
+                logger.error(f"[PRE-ANALYSIS] Erro ao executar analyze_property: {str(e)}\n{traceback.format_exc()}")
+            analysis = await PreAnalysisLog.find_one(filtro)
+            if analysis:
+                data = analysis.model_dump()
+                data.pop("_id", None)
+                data.pop("__v", None)
+                raw = data.get("result") or data.get("data") or data
+                mapped = mapToFrontend(raw)
+                logger.info("[PRE-ANALYSIS] Dados enviados ao frontend (force): %s", pprint.pformat(mapped))
+                return mapped
+            else:
+                logger.error("[PRE-ANALYSIS] Nova extração falhou para URL: %s", normalized_url)
+                return {"url": normalized_url, "status": "failed", "message": "Não foi possível extrair os dados."}
         try:
             analysis = await PreAnalysisLog.find_one(filtro)
         except Exception as e:
@@ -196,8 +253,32 @@ async def get_pre_analysis_query(url: str = Query(..., description="URL da propr
             data.pop("__v", None)
             raw = data.get("result") or data.get("data") or data
             mapped = mapToFrontend(raw)
-            logger.info("[PRE-ANALYSIS] Dados enviados ao frontend: %s", pprint.pformat(mapped))
-            return mapped
+            # Verifica campos obrigatórios
+            if not mapped.get("title") or not mapped.get("minBid") or not mapped.get("propertyType"):
+                logger.warning("[RETRY] Dados incompletos detectados. Forçando nova extração...")
+                logger.info("[PRE-ANALYSIS] Iniciando nova extração para URL: %s", normalized_url)
+                await save_pre_analysis_from_url(normalized_url)
+                try:
+                    await analyze_property(normalized_url)
+                except Exception as e:
+                    logger.error(f"[PRE-ANALYSIS] Erro ao executar analyze_property: {str(e)}\n{traceback.format_exc()}")
+                # Buscar novamente após extração
+                analysis = await PreAnalysisLog.find_one(filtro)
+                if analysis:
+                    data = analysis.model_dump()
+                    data.pop("_id", None)
+                    data.pop("__v", None)
+                    raw = data.get("result") or data.get("data") or data
+                    mapped = mapToFrontend(raw)
+                    logger.info("[PRE-ANALYSIS] Dados enviados ao frontend (nova extração): %s", pprint.pformat(mapped))
+                    return mapped
+                else:
+                    logger.error("[PRE-ANALYSIS] Nova extração falhou para URL: %s", normalized_url)
+                    return {"url": normalized_url, "status": "failed", "message": "Não foi possível extrair os dados."}
+            else:
+                logger.info("[PRE-ANALYSIS] Recuperado do banco")
+                logger.info("[PRE-ANALYSIS] Dados enviados ao frontend: %s", pprint.pformat(mapped))
+                return mapped
         else:
             logger.info(f"[PRE-ANALYSIS] Nenhuma análise encontrada para esta URL: {normalized_url}")
 
@@ -228,4 +309,19 @@ async def proxy_image(url: str = Query(..., description="URL da imagem externa")
         return Response(content=response.content, media_type=content_type)
     except Exception as e:
         logger.error(f"[PROXY ERROR] {e}")
-        return Response(content=b"", status_code=500) 
+        return Response(content=b"", status_code=500)
+
+@router.delete("/admin/pre-analysis-cache")
+async def delete_pre_analysis_cache(url: str = Query(..., description="URL da propriedade para limpar cache")):
+    """
+    Endpoint ADMIN: Remove manualmente o cache de uma URL normalizada.
+    """
+    normalized_url = normalize_url(url)
+    logger.info(f"[ADMIN] Deletando cache para URL normalizada: {normalized_url}")
+    result = await PreAnalysisLog.find_one({"url": normalized_url})
+    if not result:
+        logger.warning(f"[ADMIN] Nenhum cache encontrado para URL: {normalized_url}")
+        return {"status": "not_found", "url": normalized_url}
+    await result.delete()
+    logger.info(f"[ADMIN] Cache removido para URL: {normalized_url}")
+    return {"status": "deleted", "url": normalized_url} 

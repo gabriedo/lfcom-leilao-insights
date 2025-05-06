@@ -42,7 +42,7 @@ function sanitizeUrl(url: string): string {
 
 export const analysisService = {
   // Extrair dados da URL
-  async extractDataFromUrl(url: string): Promise<ExtractionResult> {
+  async extractDataFromUrl(url: string, options?: { force?: boolean }): Promise<ExtractionResult> {
     try {
       console.log('Iniciando extração para URL:', url);
       
@@ -73,7 +73,11 @@ export const analysisService = {
         console.log(`Tentativa ${attempt + 1}/${maxAttempts} de buscar resultados`);
         
         try {
-          const response = await fetch(`${API_URL}/api/v1/pre-analysis?url=${encodeURIComponent(sanitizedUrl)}`);
+          let query = `url=${encodeURIComponent(sanitizedUrl)}`;
+          if (options?.force) {
+            query += `&force=true`;
+          }
+          const response = await fetch(`${API_URL}/api/v1/pre-analysis?${query}`);
           
           if (response.status === 404) {
             console.log('Análise ainda não disponível, aguardando...');
