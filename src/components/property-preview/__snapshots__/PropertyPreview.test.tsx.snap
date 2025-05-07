@@ -1,0 +1,464 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`PropertyPreview (integração) > renderiza corretamente apenas com title, minBid e images 1`] = `
+<DocumentFragment>
+  <div
+    class="rounded-lg border bg-card text-card-foreground shadow-sm w-full"
+  >
+    <div
+      class="p-6 flex flex-row items-center justify-between space-y-0 pb-2"
+    >
+      <h3
+        class="tracking-tight text-2xl font-bold truncate max-w-[70vw]"
+      >
+        Mega Leilão - Imóvel Teste
+      </h3>
+      <div
+        class="flex items-center space-x-2"
+      >
+        <div
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+        >
+          Sucesso
+        </div>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+          title="Atualizar dados"
+        >
+          <svg
+            class="lucide lucide-refresh-cw h-4 w-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
+            />
+            <path
+              d="M21 3v5h-5"
+            />
+            <path
+              d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"
+            />
+            <path
+              d="M8 16H3v5"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div
+      class="p-6 pt-0 space-y-6"
+    >
+      <div
+        class="relative aspect-video rounded-lg overflow-hidden"
+      >
+        <img
+          alt="Mega Leilão - Imóvel Teste"
+          class="w-full h-full object-cover"
+          loading="lazy"
+          src="https://img.com/mega.jpg"
+        />
+      </div>
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div>
+          <h3
+            class="text-lg font-semibold mb-2"
+          >
+            Informações Básicas
+          </h3>
+          <div
+            class="space-y-2"
+          >
+            <p>
+              <strong>
+                Endereço:
+              </strong>
+               Endereço não disponível
+            </p>
+            <p>
+              <strong>
+                Cidade:
+              </strong>
+               Cidade não disponível - Estado não disponível
+            </p>
+            <p>
+              <strong>
+                Tipo:
+              </strong>
+               
+              <svg
+                class="lucide lucide-home h-4 w-4 inline-block mr-1"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"
+                />
+                <polyline
+                  points="9 22 9 12 15 12 15 22"
+                />
+              </svg>
+              Não especificado
+            </p>
+          </div>
+          <div
+            class="shrink-0 bg-border h-[1px] w-full my-2"
+            data-orientation="horizontal"
+            role="none"
+          />
+          <div
+            class="space-y-2"
+          >
+            <p>
+              <strong>
+                Lance Mínimo:
+              </strong>
+               R$ 200.000,00
+            </p>
+            <p>
+              <strong>
+                Valor Avaliado:
+              </strong>
+               Não disponível
+            </p>
+          </div>
+        </div>
+        <div>
+          <h3
+            class="text-lg font-semibold mb-2"
+          >
+            Informações do Leilão
+          </h3>
+          <div
+            class="space-y-2"
+          >
+            <p>
+              <strong>
+                Tipo de Leilão:
+              </strong>
+               Não especificado
+            </p>
+            <p>
+              <strong>
+                Data do Leilão:
+              </strong>
+               Data não disponível
+            </p>
+          </div>
+          <div
+            class="shrink-0 bg-border h-[1px] w-full my-2"
+            data-orientation="horizontal"
+            role="none"
+          />
+          <div
+            class="space-y-2"
+          >
+            <div>
+              <strong>
+                Documentos:
+              </strong>
+               0 disponível(is)
+            </div>
+            <div
+              class="shrink-0 bg-border h-[1px] w-full"
+              data-orientation="horizontal"
+              role="none"
+            />
+            <div>
+              <strong>
+                Lances:
+              </strong>
+               0 registrado(s)
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3
+          class="text-lg font-semibold mb-2"
+        >
+          Descrição
+        </h3>
+        <p
+          class="text-gray-600"
+        >
+          Sem descrição disponível
+        </p>
+      </div>
+      <a
+        href="/property/mega-1"
+      >
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8 flex-1 w-full"
+        >
+          Consultar Imóvel
+        </button>
+      </a>
+    </div>
+  </div>
+</DocumentFragment>
+`;
+
+exports[`PropertyPreview (integração) > renderiza corretamente com snapshot 1`] = `
+<DocumentFragment>
+  <div
+    class="rounded-lg border bg-card text-card-foreground shadow-sm w-full"
+  >
+    <div
+      class="p-6 flex flex-row items-center justify-between space-y-0 pb-2"
+    >
+      <h3
+        class="tracking-tight text-2xl font-bold truncate max-w-[70vw]"
+      >
+        Apartamento Teste
+      </h3>
+      <div
+        class="flex items-center space-x-2"
+      >
+        <div
+          class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80"
+        >
+          Sucesso
+        </div>
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-10 w-10"
+          title="Atualizar dados"
+        >
+          <svg
+            class="lucide lucide-refresh-cw h-4 w-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"
+            />
+            <path
+              d="M21 3v5h-5"
+            />
+            <path
+              d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"
+            />
+            <path
+              d="M8 16H3v5"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div
+      class="p-6 pt-0 space-y-6"
+    >
+      <div
+        class="relative aspect-video rounded-lg overflow-hidden"
+      >
+        <img
+          alt="Apartamento Teste"
+          class="w-full h-full object-cover"
+          loading="lazy"
+          src="https://img.com/1.jpg"
+        />
+      </div>
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        <div>
+          <h3
+            class="text-lg font-semibold mb-2"
+          >
+            Informações Básicas
+          </h3>
+          <div
+            class="space-y-2"
+          >
+            <p>
+              <strong>
+                Endereço:
+              </strong>
+               Rua Exemplo, 123
+            </p>
+            <p>
+              <strong>
+                Cidade:
+              </strong>
+               São Paulo - SP
+            </p>
+            <p>
+              <strong>
+                Tipo:
+              </strong>
+               
+              <svg
+                class="lucide lucide-building2 h-4 w-4 inline-block mr-1"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"
+                />
+                <path
+                  d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"
+                />
+                <path
+                  d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"
+                />
+                <path
+                  d="M10 6h4"
+                />
+                <path
+                  d="M10 10h4"
+                />
+                <path
+                  d="M10 14h4"
+                />
+                <path
+                  d="M10 18h4"
+                />
+              </svg>
+              Apartamento
+            </p>
+          </div>
+          <div
+            class="shrink-0 bg-border h-[1px] w-full my-2"
+            data-orientation="horizontal"
+            role="none"
+          />
+          <div
+            class="space-y-2"
+          >
+            <p>
+              <strong>
+                Lance Mínimo:
+              </strong>
+               R$ 100.000,00
+            </p>
+            <p>
+              <strong>
+                Valor Avaliado:
+              </strong>
+               R$ 120.000,00
+            </p>
+          </div>
+        </div>
+        <div>
+          <h3
+            class="text-lg font-semibold mb-2"
+          >
+            Informações do Leilão
+          </h3>
+          <div
+            class="space-y-2"
+          >
+            <p>
+              <strong>
+                Tipo de Leilão:
+              </strong>
+               Judicial
+            </p>
+            <p>
+              <strong>
+                Data do Leilão:
+              </strong>
+               2025-05-10
+            </p>
+          </div>
+          <div
+            class="shrink-0 bg-border h-[1px] w-full my-2"
+            data-orientation="horizontal"
+            role="none"
+          />
+          <div
+            class="space-y-2"
+          >
+            <div>
+              <strong>
+                Documentos:
+              </strong>
+               1 disponível(is)
+              <div
+                class="flex flex-wrap gap-2 mt-1"
+              >
+                <div
+                  class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 text-foreground"
+                >
+                  Edital
+                </div>
+              </div>
+            </div>
+            <div
+              class="shrink-0 bg-border h-[1px] w-full"
+              data-orientation="horizontal"
+              role="none"
+            />
+            <div>
+              <strong>
+                Lances:
+              </strong>
+               1 registrado(s)
+              <div
+                class="flex flex-wrap gap-2 mt-1"
+              >
+                <div
+                  class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                >
+                  1º Leilão
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <h3
+          class="text-lg font-semibold mb-2"
+        >
+          Descrição
+        </h3>
+        <p
+          class="text-gray-600"
+        >
+          Descrição do imóvel
+        </p>
+      </div>
+      <a
+        href="/property/1"
+      >
+        <button
+          class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-11 rounded-md px-8 flex-1 w-full"
+        >
+          Consultar Imóvel
+        </button>
+      </a>
+    </div>
+  </div>
+</DocumentFragment>
+`;

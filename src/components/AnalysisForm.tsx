@@ -85,12 +85,11 @@ export default function AnalysisForm() {
       console.log('Iniciando extração para:', propertyUrl);
       
       // Sempre força nova análise, ignorando cache local
-      // (Opcional: pode-se limpar o cache local para evitar inconsistência)
       cacheService.remove(propertyUrl);
 
       // Atualizar o progresso a cada segundo
       const progressInterval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 3.33, 90)); // 90% máximo durante o polling
+        setProgress(prev => Math.min(prev + 3.33, 90));
       }, 1000);
 
       // Atualizar o contador de tentativas
@@ -103,7 +102,7 @@ export default function AnalysisForm() {
         analysisService.extractDataFromUrl(propertyUrl, { force: true })
       );
       
-      console.log('Resultado da extração:', result);
+      console.log('Resultado bruto da extração:', result);
       
       clearInterval(progressInterval);
       clearInterval(pollingInterval);
@@ -112,31 +111,35 @@ export default function AnalysisForm() {
       if (result?.success && result?.data) {
         // Validar os dados com Zod
         const parsed = PropertyDataSchema.safeParse(result.data);
+        console.log('Resultado da validação Zod:', parsed);
+        
         if (!parsed.success) {
           console.error("Erro ao validar resposta da API:", parsed.error.format());
           throw new Error("Dados do imóvel inválidos ou incompletos");
         }
 
-        // Validar URLs dos documentos
-        if (parsed.data?.documents) {
-          for (const doc of parsed.data.documents) {
-            if (doc?.url) {
-              const urlValidation = await validateDocumentUrl(doc.url);
-              if (!urlValidation.isValid) {
-                console.warn(`URL inválida para documento ${doc.name}: ${urlValidation.error}`);
-              }
-            }
-          }
-        }
+        // Processar os dados antes de salvar
+        const processedData = {
+          ...parsed.data,
+          title: parsed.data.title || 'Título não disponível',
+          address: parsed.data.address || 'Endereço não disponível',
+          city: parsed.data.city || 'Cidade não informada',
+          state: parsed.data.state || 'Estado não informado',
+          propertyType: parsed.data.propertyType || 'Não especificado',
+          minBid: parsed.data.minBid || '',
+          evaluatedValue: parsed.data.evaluatedValue || '',
+          description: parsed.data.description || 'Sem descrição disponível',
+          images: Array.isArray(parsed.data.images) ? parsed.data.images.filter(Boolean) : [],
+          documents: Array.isArray(parsed.data.documents) ? parsed.data.documents.filter(Boolean) : [],
+          auctions: Array.isArray(parsed.data.auctions) ? parsed.data.auctions.filter(Boolean) : []
+        };
 
-        // Salvar no cache
-        cacheService.set(propertyUrl, parsed.data);
-
-        setPropertyData(parsed.data);
+        console.log('Dados processados antes de setar:', processedData);
+        setPropertyData(processedData);
         setExtractionResult({
           success: true,
           message: "Dados extraídos com sucesso!",
-          data: parsed.data
+          data: processedData
         });
         setIsDataReady(true);
         
@@ -237,19 +240,19 @@ export default function AnalysisForm() {
       {isDataReady && propertyData && (
         <PropertyPreview
           id={propertyData.id || "temp-id"}
-          title={propertyData.title || "Título não disponível"}
-          address={propertyData.address || ""}
-          city={propertyData.city || ""}
-          state={propertyData.state || ""}
-          minBid={propertyData.minBid || ""}
-          evaluatedValue={propertyData.evaluatedValue || ""}
-          propertyType={propertyData.propertyType || ""}
-          auctionType={propertyData.auctionType || ""}
+          title={propertyData.title}
+          address={propertyData.address}
+          city={propertyData.city}
+          state={propertyData.state}
+          minBid={propertyData.minBid}
+          evaluatedValue={propertyData.evaluatedValue}
+          propertyType={propertyData.propertyType}
+          auctionType={propertyData.auctionType || "Leilão"}
           auctionDate={propertyData.auctionDate || ""}
-          description={propertyData.description || ""}
-          images={Array.isArray(propertyData.images) ? propertyData.images : []}
-          documents={Array.isArray(propertyData.documents) ? propertyData.documents : []}
-          auctions={Array.isArray(propertyData.auctions) ? propertyData.auctions : []}
+          description={propertyData.description}
+          images={propertyData.images}
+          documents={propertyData.documents}
+          auctions={propertyData.auctions}
           extractionStatus={propertyData.extractionStatus || "success"}
           onRefresh={handleExtractData}
         />

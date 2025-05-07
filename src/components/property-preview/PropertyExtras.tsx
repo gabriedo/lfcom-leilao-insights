@@ -1,40 +1,118 @@
 import React from 'react';
-import { Badge } from '@/components/ui/badge';
+import { FileText, Gavel } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 
 interface PropertyExtrasProps {
-  documents?: any[] | null;
-  auctions?: any[] | null;
+  documents?: Array<{
+    name: string;
+    url: string;
+    type?: string;
+  }>;
+  auctions?: Array<{
+    name: string;
+    url: string;
+    date?: string;
+  }>;
 }
 
-export const PropertyExtras: React.FC<PropertyExtrasProps> = ({ documents, auctions }) => (
-  <div className="space-y-2">
-    <div>
-      <strong>Documentos:</strong> {Array.isArray(documents) ? documents.length : 0} disponível(is)
-      {Array.isArray(documents) && documents.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-1">
-          {documents.slice(0, 3).map((doc, idx) => (
-            <Badge key={idx} variant="outline">
-              {doc?.name || doc?.type || 'Documento'}
-            </Badge>
-          ))}
-          {documents.length > 3 && <span className="text-xs text-muted-foreground">+{documents.length - 3} mais</span>}
+const PropertyExtras: React.FC<PropertyExtrasProps> = ({ documents = [], auctions = [] }) => {
+  console.log('[PropertyExtras] Dados recebidos:', { documents, auctions });
+
+  const hasDocuments = Array.isArray(documents) && documents.length > 0;
+  const hasAuctions = Array.isArray(auctions) && auctions.length > 0;
+
+  if (!hasDocuments && !hasAuctions) {
+    return (
+      <div className="text-sm text-gray-500">
+        Nenhum documento ou lance disponível.
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {hasDocuments && (
+        <div>
+          <h4 className="text-sm font-medium mb-2 flex items-center">
+            <FileText className="h-4 w-4 mr-2" />
+            Documentos ({documents.length})
+          </h4>
+          <div className="space-y-2">
+            {documents.map((doc, index) => (
+              <Card key={`doc-${index}`} className="p-2">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm">{doc.name}</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="h-8"
+                    >
+                      <a
+                        href={doc.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs"
+                      >
+                        Acessar
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasDocuments && hasAuctions && <Separator />}
+
+      {hasAuctions && (
+        <div>
+          <h4 className="text-sm font-medium mb-2 flex items-center">
+            <Gavel className="h-4 w-4 mr-2" />
+            Lances ({auctions.length})
+          </h4>
+          <div className="space-y-2">
+            {auctions.map((auction, index) => (
+              <Card key={`auction-${index}`} className="p-2">
+                <CardContent className="p-0">
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm">
+                      <div>{auction.name}</div>
+                      {auction.date && (
+                        <div className="text-xs text-gray-500">
+                          Data: {auction.date}
+                        </div>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="h-8"
+                    >
+                      <a
+                        href={auction.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs"
+                      >
+                        Acessar
+                      </a>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
     </div>
-    <Separator />
-    <div>
-      <strong>Lances:</strong> {Array.isArray(auctions) ? auctions.length : 0} registrado(s)
-      {Array.isArray(auctions) && auctions.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-1">
-          {auctions.slice(0, 3).map((auc, idx) => (
-            <Badge key={idx} variant="secondary">
-              {auc?.label || auc?.date || 'Leilão'}
-            </Badge>
-          ))}
-          {auctions.length > 3 && <span className="text-xs text-muted-foreground">+{auctions.length - 3} mais</span>}
-        </div>
-      )}
-    </div>
-  </div>
-); 
+  );
+};
+
+export default PropertyExtras; 

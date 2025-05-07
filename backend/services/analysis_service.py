@@ -5,8 +5,10 @@ from typing import Dict, Any, Optional
 from .extractors import extract_basic_data_from_html
 from backend.utils.pre_analysis_logger import save_pre_analysis
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from .html_utils import get_html_content, render_with_playwright
+from backend.schemas import PreAnalysisResponse
+from backend.config import get_mongodb_collection
 
 logger = logging.getLogger(__name__)
 
@@ -126,3 +128,86 @@ async def analyze_property(url: str) -> Dict[str, Any]:
         logger.error(error_msg)
         await save_pre_analysis(url, None, error_msg)
         raise 
+
+async def pre_analysis(url: str, force: bool = False) -> dict:
+    """
+    Realiza pré-análise de uma URL de leilão.
+    Implementa cache de 1h no MongoDB.
+    """
+    try:
+        # Verifica cache se não for forçado
+        if not force:
+            cache = await get_cached_analysis(url)
+            if cache:
+                logger.info(f"[PRE-ANALYSIS] Retornando dados do cache para: {url}")
+                return cache
+
+        # ... existing code ...
+
+        # Valida e formata os dados extraídos
+        data = {
+            "title": extracted_data.get("title", ""),
+            "minBid": extracted_data.get("minBid", ""),
+            "propertyType": extracted_data.get("propertyType", ""),
+            "address": extracted_data.get("address", ""),
+            "city": extracted_data.get("city", ""),
+            "state": extracted_data.get("state", ""),
+            "evaluatedValue": extracted_data.get("evaluatedValue", ""),
+            "auctionDate": extracted_data.get("auctionDate", ""),
+            "documentCount": extracted_data.get("documentCount", 0),
+            "bidCount": extracted_data.get("bidCount", 0),
+            "images": extracted_data.get("images", []),
+            "documents": extracted_data.get("documents", []),
+            "extractionStatus": extracted_data.get("extractionStatus", "failed"),
+            "description": extracted_data.get("description", ""),
+            "auctionType": extracted_data.get("auctionType", "Leilão"),
+            "auctions": extracted_data.get("auctions", []),
+            "url": url,
+            "created_at": datetime.utcnow()
+        }
+
+        # Valida os dados com Pydantic
+        validated_data = PreAnalysisResponse(**data)
+        
+        # Salva no cache
+        await save_to_cache(validated_data.model_dump())
+        
+        return validated_data.model_dump()
+
+    except Exception as e:
+        logger.error(f"[PRE-ANALYSIS] Erro na pré-análise: {str(e)}")
+        return {"error": str(e)}
+
+async def get_cached_analysis(url: str) -> Optional[dict]:
+    """Recupera análise do cache se ainda for válida (menos de 1h)"""
+    try:
+        collection = get_mongodb_collection("pre_analysis_cache")
+        cache = await collection.find_one({
+            "url": url,
+            "created_at": {"$gte": datetime.utcnow() - timedelta(hours=1)}
+        })
+        return cache if cache else None
+    except Exception as e:
+        logger.error(f"[PRE-ANALYSIS] Erro ao buscar cache: {str(e)}")
+        return None
+
+async def save_to_cache(data: dict) -> None:
+    """Salva análise no cache com TTL de 1h"""
+    try:
+        collection = get_mongodb_collection("pre_analysis_cache")
+        await collection.update_one(
+            {"url": data["url"]},
+            {"$set": data},
+            upsert=True
+        )
+    except Exception as e:
+        logger.error(f"[PRE-ANALYSIS] Erro ao salvar cache: {str(e)}")
+
+# Cria índice TTL no MongoDB
+async def create_cache_index():
+    try:
+        collection = get_mongodb_collection("pre_analysis_cache")
+        await collection.create_index("created_at", expireAfterSeconds=3600)
+        await collection.create_index("url", unique=True)
+    except Exception as e:
+        logger.error(f"[PRE-ANALYSIS] Erro ao criar índice: {str(e)}") 

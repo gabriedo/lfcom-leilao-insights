@@ -6,6 +6,7 @@ import signal
 import sys
 import psutil
 import traceback
+from typing import Optional
 
 # Carrega as variáveis de ambiente
 load_dotenv()
@@ -16,6 +17,9 @@ logger = logging.getLogger(__name__)
 # Configurações do MongoDB
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
 DATABASE_NAME = os.getenv("MONGODB_DB", "leilao_insights")
+
+# MongoDB connection
+client: Optional[AsyncIOMotorClient] = None
 
 class MongoDB:
     """
@@ -38,6 +42,9 @@ class MongoDB:
                 # Testa a conexão
                 await cls._client.admin.command("ping")
                 logger.info("Conexão com MongoDB estabelecida com sucesso")
+                
+                # Cria índices necessários
+                await cls.create_indexes()
                 
         except Exception as e:
             logger.error(f"Erro ao conectar com MongoDB: {str(e)}")
@@ -66,7 +73,7 @@ class MongoDB:
         Retorna a instância do banco de dados.
         """
         if cls._database is None:
-            raise Exception("Database not initialized")
+            raise Exception("Database not initialized. Certifique-se de que a conexão foi estabelecida.")
         return cls._database
     
     @classmethod
@@ -153,4 +160,35 @@ def signal_handler(signum, frame):
 
 # Registra os handlers de sinal
 signal.signal(signal.SIGINT, signal_handler)
-signal.signal(signal.SIGTERM, signal_handler) 
+signal.signal(signal.SIGTERM, signal_handler)
+
+async def connect_to_mongodb():
+    """Estabelece conexão com o MongoDB"""
+    global client
+    try:
+        client = AsyncIOMotorClient(MONGODB_URL)
+        await client.admin.command('ping')
+        logger.info("Conexão com MongoDB estabelecida com sucesso")
+        
+        # Cria índices necessários
+        db = client.leilao_insights
+        await db.pre_analysis_cache.create_index("created_at", expireAfterSeconds=3600)
+        await db.pre_analysis_cache.create_index("url", unique=True)
+        logger.info("Índices criados com sucesso")
+        
+    except Exception as e:
+        logger.error(f"Erro ao conectar ao MongoDB: {str(e)}")
+        raise
+
+async def close_mongodb_connection():
+    """Fecha conexão com o MongoDB"""
+    global client
+    if client:
+        client.close()
+        logger.info("Conexão com MongoDB fechada com sucesso")
+
+def get_mongodb_collection(collection_name: str):
+    """Retorna uma coleção do MongoDB"""
+    if not client:
+        raise Exception("MongoDB client não inicializado")
+    return client.leilao_insights[collection_name] 

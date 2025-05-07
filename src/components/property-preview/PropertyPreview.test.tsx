@@ -3,6 +3,8 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, cleanup, fireEvent } from '@testing-library/react';
 import PropertyPreview from '../PropertyPreview';
 import { MemoryRouter } from 'react-router-dom';
+import { axe, toHaveNoViolations } from 'jest-axe';
+(expect as any).extend(toHaveNoViolations);
 
 // Limpa o DOM após cada teste
 afterEach(cleanup);
@@ -124,5 +126,55 @@ describe('PropertyPreview (integração)', () => {
     const btn = screen.getByRole('button', { name: /atualizar|refresh|tentar novamente/i });
     fireEvent.click(btn);
     expect(onRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('renderiza corretamente com snapshot', () => {
+    const { asFragment } = renderComponent(baseProps);
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it('não possui violações de acessibilidade', async () => {
+    const { container } = renderComponent(baseProps);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+
+  it('renderiza corretamente apenas com title, minBid e images', () => {
+    const props = {
+      title: 'Mega Leilão - Imóvel Teste',
+      minBid: 'R$ 200.000,00',
+      images: ['https://img.com/mega.jpg'],
+      address: '',
+      city: '',
+      state: '',
+      propertyType: '',
+      evaluatedValue: '',
+      auctionType: '',
+      auctionDate: '',
+      description: '',
+      documents: [],
+      auctions: [],
+      extractionStatus: 'success' as const,
+      id: 'mega-1',
+      onRefresh: vi.fn(),
+    };
+    const { asFragment } = render(
+      <MemoryRouter>
+        <PropertyPreview {...props} />
+      </MemoryRouter>
+    );
+    // Título e imagem devem aparecer
+    expect(screen.getByText('Mega Leilão - Imóvel Teste')).toBeInTheDocument();
+    expect(screen.getByRole('img')).toHaveAttribute('src', 'https://img.com/mega.jpg');
+    expect(screen.getByText('R$ 200.000,00')).toBeInTheDocument();
+    // Fallbacks para campos ausentes
+    expect(screen.getByText('Endereço não disponível')).toBeInTheDocument();
+    expect(screen.getByText((content) => content.includes('Cidade não disponível') && content.includes('Estado não disponível'))).toBeInTheDocument();
+    expect(screen.getAllByText('Não especificado').length).toBe(2);
+    expect(screen.getByText('Não disponível')).toBeInTheDocument();
+    expect(screen.getByText('Data não disponível')).toBeInTheDocument();
+    expect(screen.getByText('Sem descrição disponível')).toBeInTheDocument();
+    // Snapshot
+    expect(asFragment()).toMatchSnapshot();
   });
 }); 

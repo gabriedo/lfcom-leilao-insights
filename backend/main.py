@@ -5,11 +5,11 @@ from fastapi import FastAPI, HTTPException, status, Request
 from pydantic import BaseModel, HttpUrl
 from urllib.parse import urlparse
 import httpx
-from backend.routers import pre_analysis, extraction_report
+from backend.routers import pre_analysis, extraction_report, proxy
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from backend.models.url_log import URLLog
-from backend.config import MongoDB, check_port_in_use, kill_process_on_port
+from backend.config import MongoDB, check_port_in_use, kill_process_on_port, connect_to_mongodb, close_mongodb_connection
 import asyncio
 from datetime import datetime
 import aiohttp
@@ -54,6 +54,7 @@ app.add_middleware(
 # Inclui os routers
 app.include_router(pre_analysis.router, prefix="/api/v1", tags=["pre-analysis"])
 app.include_router(extraction_report.router, prefix="/api/v1", tags=["extraction-report"])
+app.include_router(proxy.router, prefix="/api/v1", tags=["proxy"])
 
 # Exemplo estático; depois podemos carregar do Mongo
 AUTHORIZED_DOMAINS = ["innlei.org.br"]  # Adicione outros domínios conforme necessário
@@ -123,16 +124,29 @@ async def validate_url(payload: UrlPayload):
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("Iniciando conexão com MongoDB...")
-    await MongoDB.connect()
-    await MongoDB.create_indexes()
-    logger.info("Conexão com MongoDB estabelecida com sucesso")
+    """
+    Evento executado na inicialização da aplicação.
+    """
+    try:
+        logger.info("Iniciando conexão com MongoDB...")
+        await MongoDB.connect()
+        logger.info("Aplicação iniciada com sucesso")
+    except Exception as e:
+        logger.error(f"Erro ao iniciar aplicação: {str(e)}")
+        raise
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    logger.info("Fechando conexão com MongoDB...")
-    await MongoDB.close()
-    logger.info("Conexão com MongoDB fechada com sucesso")
+    """
+    Evento executado no encerramento da aplicação.
+    """
+    try:
+        logger.info("Fechando conexão com MongoDB...")
+        await MongoDB.close()
+        logger.info("Aplicação encerrada com sucesso")
+    except Exception as e:
+        logger.error(f"Erro ao encerrar aplicação: {str(e)}")
+        raise
 
 async def check_url(url: str) -> dict:
     try:
