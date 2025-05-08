@@ -5,5 +5,8 @@ export default defineConfig({
   root: './frontend',
   base: './',
   plugins: [react()],
-  server: { port: 5173 }
+  server: { port: 5173 },
+  esbuild: {
+    tsconfig: './frontend/tsconfig.json'
+  }
 }) 
