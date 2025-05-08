@@ -1,0 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Roboto+Mono:wght@400;500&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 7%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+
+    --primary: 0 0% 7%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 7%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 7%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 7%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 0 0% 7%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 0 0% 7%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 0 0% 7%;
+  }
+
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer components {
+  .lfcom-card {
+    @apply border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300;
+  }
+
+  .lfcom-button-primary {
+    @apply bg-lfcom-black text-lfcom-white hover:bg-lfcom-gray-800 px-4 py-2 rounded-md font-medium transition-colors;
+  }
+
+  .lfcom-button-secondary {
+    @apply bg-lfcom-gray-100 text-lfcom-black hover:bg-lfcom-gray-200 px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .lfcom-input {
+    @apply border border-lfcom-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-lfcom-black;
+  }
+  
+  .lfcom-card-gradient {
+    @apply bg-gradient-to-br from-white to-lfcom-gray-100 backdrop-blur-sm;
+  }
+  
+  /* Responsive padding utility */
+  .responsive-container {
+    @apply px-4 md:px-6 lg:px-8 xl:px-12 mx-auto;
+  }
+  
+  /* Mobile-first spacing utility */
+  .responsive-section {
+    @apply py-8 md:py-12 lg:py-16;
+  }
+  
+  /* Responsive text sizing utility */
+  .responsive-heading {
+    @apply text-2xl md:text-3xl lg:text-4xl font-bold;
+  }
+}

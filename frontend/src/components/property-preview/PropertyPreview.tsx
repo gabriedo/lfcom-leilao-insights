@@ -1,10 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Building2, Home, Landmark, RefreshCw } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { AlertCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import {
   PropertyHeader,
@@ -12,7 +11,7 @@ import {
   PropertyPricing,
   PropertyLocation,
   PropertyExtras
-} from './property-preview';
+} from './index';
 
 interface PropertyPreviewProps {
   id?: string | null;
@@ -33,20 +32,6 @@ interface PropertyPreviewProps {
   onRefresh?: () => void;
 }
 
-const statusColors = {
-  success: 'default',
-  fallback_used: 'secondary',
-  partial: 'outline',
-  failed: 'destructive'
-} as const;
-
-const statusLabels = {
-  success: 'Sucesso',
-  fallback_used: 'Fallback',
-  partial: 'Parcial',
-  failed: 'Falha'
-} as const;
-
 const getStatusMessage = (status: string | undefined, description?: string | null) => {
   if (status === 'failed') {
     return description || 'Não foi possível extrair os dados deste imóvel. Tente novamente ou verifique a URL.';
@@ -58,31 +43,20 @@ const getStatusMessage = (status: string | undefined, description?: string | nul
 };
 
 const PropertyPreview: React.FC<PropertyPreviewProps> = (props) => {
-  console.log('[PropertyPreview] Props recebidas:', {
-    title: props.title,
-    address: props.address,
-    city: props.city,
-    state: props.state,
-    propertyType: props.propertyType,
-    minBid: props.minBid,
-    evaluatedValue: props.evaluatedValue,
-    extractionStatus: props.extractionStatus,
-    documents: props.documents?.length,
-    auctions: props.auctions?.length
-  });
+  console.log('[PropertyPreview] props recebidas:', props);
   
   const {
     id = 'temp-id',
-    title = 'Título não disponível',
-    address = 'Endereço não disponível',
-    city = 'Cidade não informada',
-    state = 'Estado não informado',
+    title,
+    address = '',
+    city,
+    state,
     minBid = '',
-    evaluatedValue = '',
-    propertyType = 'Não especificado',
-    auctionType = 'Leilão',
+    evaluatedValue,
+    propertyType = '',
+    auctionType = '',
     auctionDate = '',
-    description = 'Sem descrição disponível',
+    description = '',
     images = [],
     documents = [],
     auctions = [],
@@ -93,37 +67,6 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = (props) => {
   const statusMessage = getStatusMessage(extractionStatus, description);
   const documentCount = documents?.length ?? 0;
   const bidCount = auctions?.length ?? 0;
-
-  const getPropertyTypeIcon = () => {
-    const type = propertyType?.toLowerCase() || '';
-    if (type.includes('apartamento') || type.includes('apartment')) {
-      return <Building2 className="h-4 w-4" />;
-    }
-    if (type.includes('casa') || type.includes('house')) {
-      return <Home className="h-4 w-4" />;
-    }
-    if (type.includes('comercial') || type.includes('commercial')) {
-      return <Landmark className="h-4 w-4" />;
-    }
-    return <Home className="h-4 w-4" />;
-  };
-
-  const getPropertyTypeLabel = () => {
-    const type = propertyType?.toLowerCase() || '';
-    if (type.includes('apartamento') || type.includes('apartment')) {
-      return "Apartamento";
-    }
-    if (type.includes('casa') || type.includes('house')) {
-      return "Casa";
-    }
-    if (type.includes('comercial') || type.includes('commercial')) {
-      return "Comercial";
-    }
-    if (type.includes('terreno') || type.includes('land')) {
-      return "Terreno";
-    }
-    return propertyType || "Não especificado";
-  };
 
   if (extractionStatus === 'failed') {
     return (
@@ -139,22 +82,10 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = (props) => {
     );
   }
 
-  console.log('[PropertyPreview] Renderizando com dados:', {
-    title,
-    address,
-    city,
-    state,
-    propertyType,
-    minBid,
-    evaluatedValue,
-    documentCount,
-    bidCount
-  });
-
   return (
     <Card className="w-full">
       <PropertyHeader 
-        title={title} 
+        title={title || null} 
         extractionStatus={extractionStatus} 
         onRefresh={onRefresh} 
       />
@@ -165,7 +96,10 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = (props) => {
             <AlertDescription>{statusMessage}</AlertDescription>
           </Alert>
         )}
-        <PropertyImages images={images} title={title} />
+        <PropertyImages 
+          images={images} 
+          title={title} 
+        />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <h3 className="text-lg font-semibold mb-2">Informações Básicas</h3>
@@ -176,21 +110,29 @@ const PropertyPreview: React.FC<PropertyPreviewProps> = (props) => {
               propertyType={propertyType} 
             />
             <Separator className="my-2" />
-            <PropertyPricing minBid={minBid} evaluatedValue={evaluatedValue} />
+            <PropertyPricing 
+              minBid={minBid} 
+              evaluatedValue={evaluatedValue} 
+            />
           </div>
           <div>
             <h3 className="text-lg font-semibold mb-2">Informações do Leilão</h3>
             <div className="space-y-2">
-              <p><strong>Tipo de Leilão:</strong> {auctionType}</p>
+              <p><strong>Tipo de Leilão:</strong> {auctionType || 'Não especificado'}</p>
               <p><strong>Data do Leilão:</strong> {auctionDate || 'Data não disponível'}</p>
             </div>
             <Separator className="my-2" />
-            <PropertyExtras documents={documents} auctions={auctions} />
+            <PropertyExtras 
+              documents={documents} 
+              auctions={auctions} 
+              documentCount={documentCount}
+              bidCount={bidCount}
+            />
           </div>
         </div>
         <div>
           <h3 className="text-lg font-semibold mb-2">Descrição</h3>
-          <p className="text-gray-600">{description}</p>
+          <p className="text-gray-600">{description || 'Sem descrição disponível'}</p>
         </div>
         <Link to={`/property/${id}`}>
           <Button size="lg" className="flex-1 w-full">
