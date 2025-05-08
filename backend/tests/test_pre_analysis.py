@@ -4,7 +4,7 @@ import json
 import os
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
-from main import app
+from backend.main import app
 
 # URLs de teste para diferentes domínios
 TEST_URLS = [
@@ -65,7 +65,7 @@ async def test_pre_analyze_endpoint(client):
 @pytest.mark.asyncio
 async def test_extract_basic_data_from_html():
     """Testa a função extract_basic_data_from_html diretamente"""
-    from routers.pre_analysis import extract_basic_data_from_html
+    from backend.services.extractors import extract_basic_data_from_html
     
     # HTML de exemplo para teste
     test_html = """
@@ -100,7 +100,7 @@ async def test_extract_basic_data_from_html():
 async def test_log_persistence(client):
     """Testa se os logs estão sendo salvos no MongoDB"""
     from backend.models.url_log import URLLog
-    from config import MongoDB
+    from backend.config import MongoDB
     
     # Mock da resposta HTTP
     mock_response = MagicMock()

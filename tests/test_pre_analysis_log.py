@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate, PyObjectId
+from backend.models.pre_analysis_log import PreAnalysisLog, PreAnalysisLogCreate, PyObjectId
 
 def test_pre_analysis_log_creation():
     # Testa a criação de um log com todos os campos

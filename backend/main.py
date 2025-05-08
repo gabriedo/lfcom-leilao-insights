@@ -1,11 +1,9 @@
-import sys
 import os
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from fastapi import FastAPI, HTTPException, status, Request
 from pydantic import BaseModel, HttpUrl
 from urllib.parse import urlparse
 import httpx
-from backend.routers import pre_analysis, extraction_report, proxy
+from backend.routers import pre_analysis, extraction_report, proxy, analysis, proxy_html, proxy_image
 from fastapi.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from backend.models.url_log import URLLog
@@ -55,6 +53,9 @@ app.add_middleware(
 app.include_router(pre_analysis.router, prefix="/api/v1", tags=["pre-analysis"])
 app.include_router(extraction_report.router, prefix="/api/v1", tags=["extraction-report"])
 app.include_router(proxy.router, prefix="/api/v1", tags=["proxy"])
+app.include_router(analysis.router, prefix="/api/v1", tags=["analysis"])
+app.include_router(proxy_html.router, prefix="/api/v1", tags=["proxy-html"])
+app.include_router(proxy_image.router, prefix="/api/v1", tags=["proxy-image"])
 
 # Exemplo estático; depois podemos carregar do Mongo
 AUTHORIZED_DOMAINS = ["innlei.org.br"]  # Adicione outros domínios conforme necessário

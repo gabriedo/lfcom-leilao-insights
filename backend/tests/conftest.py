@@ -11,7 +11,8 @@ from backend.config import MongoDB
 load_dotenv()
 
 # Adiciona o diretório raiz ao PYTHONPATH
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
+print('PYTHONPATH em uso nos testes:', sys.path)
 
 def pytest_configure(config):
     """Configuração global do pytest"""

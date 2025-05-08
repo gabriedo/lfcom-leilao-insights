@@ -1,11 +1,11 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from utils.pre_analysis_logger import save_pre_analysis
-from models.pre_analysis_log import PreAnalysisLogCreate
+from backend.utils.pre_analysis_logger import save_pre_analysis
+from backend.models.pre_analysis_log import PreAnalysisLogCreate
 
 @pytest.mark.asyncio
 async def test_save_pre_analysis_success():
-    with patch('models.pre_analysis_log.PreAnalysisLogCreate.save') as mock_save:
+    with patch('backend.models.pre_analysis_log.PreAnalysisLogCreate.save') as mock_save:
         # Configura o mock para retornar um objeto simulado
         mock_save.return_value = MagicMock(
             id="507f1f77bcf86cd799439011",
@@ -34,7 +34,7 @@ async def test_save_pre_analysis_success():
 
 @pytest.mark.asyncio
 async def test_save_pre_analysis_error():
-    with patch('models.pre_analysis_log.PreAnalysisLogCreate.save') as mock_save:
+    with patch('backend.models.pre_analysis_log.PreAnalysisLogCreate.save') as mock_save:
         # Configura o mock para lançar uma exceção
         mock_save.side_effect = Exception("Erro ao salvar")
         
@@ -52,7 +52,7 @@ async def test_save_pre_analysis_error():
 
 @pytest.mark.asyncio
 async def test_save_pre_analysis_pending():
-    with patch('models.pre_analysis_log.PreAnalysisLogCreate.save') as mock_save:
+    with patch('backend.models.pre_analysis_log.PreAnalysisLogCreate.save') as mock_save:
         # Configura o mock para retornar um objeto simulado
         mock_save.return_value = MagicMock(
             id="507f1f77bcf86cd799439011",

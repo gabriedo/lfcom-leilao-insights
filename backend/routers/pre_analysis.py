@@ -11,7 +11,7 @@ import pprint
 import re
 import requests
 from fastapi.responses import Response, StreamingResponse
-from ..services.extractors import normalize_url
+from ..services import normalize_url
 import httpx
 import io
 import locale

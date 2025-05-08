@@ -48,3 +48,13 @@ cp .env.example .env
 
 ### 2. Backend (FastAPI)
 ```
+
+### 3. Testes do Backend
+
+Para rodar todos os testes do backend, utilize um dos comandos abaixo na raiz do projeto:
+
+```bash
+./run_tests.sh
+# ou
+make test
+```

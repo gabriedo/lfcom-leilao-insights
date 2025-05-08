@@ -211,3 +211,6 @@ async def create_cache_index():
         await collection.create_index("url", unique=True)
     except Exception as e:
         logger.error(f"[PRE-ANALYSIS] Erro ao criar índice: {str(e)}") 
+
+# No final do arquivo, exportar extract_basic_data se existir
+# Caso não exista, crie um alias para a função correta ou ajuste o teste para importar a função real usada na análise. 
