@@ -282,7 +282,7 @@ const fetchProperties = async (
 
   // Aplicar filtros
   if (filters.city && filters.city !== "all-cities") {
-    url.searchParams.set("city", filters.city);
+    url.searchParams.set("city__icontains", filters.city);
   }
 
   if (filters.state && filters.state !== "all-states") {
